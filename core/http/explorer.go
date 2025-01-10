@@ -14,7 +14,7 @@ import (
 func Explorer(db *explorer.Database) *fiber.App {
 
 	fiberCfg := fiber.Config{
-		Views: renderEngine(),
+		Views: RenderEngine(),
 		// We disable the Fiber startup message as it does not conform to structured logging.
 		// We register a startup log line with connection information in the OnListen hook to keep things user friendly though
 		DisableStartupMessage: false,
@@ -26,7 +26,7 @@ func Explorer(db *explorer.Database) *fiber.App {
 	app.Use(middleware.StripPathPrefix())
 	routes.RegisterExplorerRoutes(app, db)
 
-	httpFS := http.FS(embedDirStatic)
+	httpFS := http.FS(EmbedDirStatic)
 
 	app.Use(favicon.New(favicon.Config{
 		URL:        "/favicon.ico",
@@ -42,7 +42,7 @@ func Explorer(db *explorer.Database) *fiber.App {
 
 	// Define a custom 404 handler
 	// Note: keep this at the bottom!
-	app.Use(notFoundHandler)
+	app.Use(NotFoundHandler)
 
 	return app
 }

@@ -33,7 +33,7 @@ import (
 // Embed a directory
 //
 //go:embed static/*
-var embedDirStatic embed.FS
+var EmbedDirStatic embed.FS
 
 // @title LocalAI API
 // @version 2.0.0
@@ -51,7 +51,7 @@ var embedDirStatic embed.FS
 func API(application *application.Application) (*fiber.App, error) {
 
 	fiberCfg := fiber.Config{
-		Views:     renderEngine(),
+		Views:     RenderEngine(),
 		BodyLimit: application.ApplicationConfig().UploadLimitMB * 1024 * 1024, // this is the default limit of 4MB
 		// We disable the Fiber startup message as it does not conform to structured logging.
 		// We register a startup log line with connection information in the OnListen hook to keep things user friendly though
@@ -167,7 +167,7 @@ func API(application *application.Application) (*fiber.App, error) {
 	}
 	routes.RegisterJINARoutes(router, application.BackendLoader(), application.ModelLoader(), application.ApplicationConfig())
 
-	httpFS := http.FS(embedDirStatic)
+	httpFS := http.FS(EmbedDirStatic)
 
 	router.Use(favicon.New(favicon.Config{
 		URL:        "/favicon.ico",
@@ -183,7 +183,7 @@ func API(application *application.Application) (*fiber.App, error) {
 
 	// Define a custom 404 handler
 	// Note: keep this at the bottom!
-	router.Use(notFoundHandler)
+	router.Use(NotFoundHandler)
 
 	return router, nil
 }

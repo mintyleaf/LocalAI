@@ -18,7 +18,7 @@ import (
 //go:embed views/*
 var viewsfs embed.FS
 
-func notFoundHandler(c *fiber.Ctx) error {
+func NotFoundHandler(c *fiber.Ctx) error {
 	// Check if the request accepts JSON
 	if string(c.Context().Request.Header.ContentType()) == "application/json" || len(c.Accepts("html")) == 0 {
 		// The client expects a JSON response
@@ -33,7 +33,7 @@ func notFoundHandler(c *fiber.Ctx) error {
 	}
 }
 
-func renderEngine() *fiberhtml.Engine {
+func RenderEngine() *fiberhtml.Engine {
 	engine := fiberhtml.NewFileSystem(http.FS(viewsfs), ".html")
 	engine.AddFuncMap(sprig.FuncMap())
 	engine.AddFunc("MDToHTML", markDowner)
