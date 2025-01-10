@@ -1,32 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
+	"io"
 	"net/http"
 
-	"github.com/dave-gray101/v2keyauth"
 	"github.com/mudler/LocalAI/internal"
-	"github.com/mudler/LocalAI/pkg/model"
 	"github.com/mudler/LocalAI/pkg/utils"
 
 	"github.com/mudler/LocalAI/core/config"
 	"github.com/mudler/LocalAI/core/gallery"
 	laihttp "github.com/mudler/LocalAI/core/http"
-	"github.com/mudler/LocalAI/core/http/endpoints/localai"
 	"github.com/mudler/LocalAI/core/http/endpoints/openai"
 	"github.com/mudler/LocalAI/core/http/middleware"
-	"github.com/mudler/LocalAI/core/http/routes"
 	laihttputils "github.com/mudler/LocalAI/core/http/utils"
 	"github.com/mudler/LocalAI/core/p2p"
 
 	"github.com/mudler/LocalAI/core/schema"
-	"github.com/mudler/LocalAI/core/services"
 
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -56,11 +50,66 @@ func main() {
 		return
 	}
 
-	if err := appHTTP.Listen(":8080"); err != nil {
+	if err := appHTTP.Listen(":8081"); err != nil {
 		log.Error().Err(err).Msg("error during HTTP App construction")
 		return
 	}
 
+}
+
+func makeModelsRequest(url, bearerKey string) (schema.ModelsDataResponse, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", bearerKey)
+	modelsResponse := schema.ModelsDataResponse{}
+
+	if err != nil {
+		return modelsResponse, err
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return modelsResponse, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return modelsResponse, err
+	}
+	err = json.Unmarshal(body, &modelsResponse)
+	if err != nil {
+		return modelsResponse, err
+	}
+	return modelsResponse, nil
+}
+
+func getModelsConfigs(url, bearerKey string) ([]config.BackendConfig, error) {
+	modelsResponse, err := makeModelsRequest(url, bearerKey)
+	if err != nil {
+		return nil, err
+	}
+	response := []config.BackendConfig{}
+
+	for _, v := range modelsResponse.Data {
+		response = append(response, config.BackendConfig{
+			Name: v.ID,
+		})
+	}
+	return response, nil
+}
+
+func getModels(url, bearerKey string) ([]string, error) {
+	modelsResponse, err := makeModelsRequest(url, bearerKey)
+	if err != nil {
+		return nil, err
+	}
+	response := []string{}
+
+	for _, v := range modelsResponse.Data {
+		response = append(response, v.ID)
+	}
+	return response, nil
 }
 
 func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
@@ -74,30 +123,23 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		// Override default error handler
 	}
 
-	if !appConfig.OpaqueErrors {
-		// Normally, return errors as JSON responses
-		fiberCfg.ErrorHandler = func(ctx *fiber.Ctx, err error) error {
-			// Status code defaults to 500
-			code := fiber.StatusInternalServerError
+	// Normally, return errors as JSON responses
+	fiberCfg.ErrorHandler = func(ctx *fiber.Ctx, err error) error {
+		// Status code defaults to 500
+		code := fiber.StatusInternalServerError
 
-			// Retrieve the custom status code if it's a *fiber.Error
-			var e *fiber.Error
-			if errors.As(err, &e) {
-				code = e.Code
-			}
+		// Retrieve the custom status code if it's a *fiber.Error
+		var e *fiber.Error
+		if errors.As(err, &e) {
+			code = e.Code
+		}
 
-			// Send custom error page
-			return ctx.Status(code).JSON(
-				schema.ErrorResponse{
-					Error: &schema.APIError{Message: err.Error(), Code: code},
-				},
-			)
-		}
-	} else {
-		// If OpaqueErrors are required, replace everything with a blank 500.
-		fiberCfg.ErrorHandler = func(ctx *fiber.Ctx, _ error) error {
-			return ctx.Status(500).SendString("")
-		}
+		// Send custom error page
+		return ctx.Status(code).JSON(
+			schema.ErrorResponse{
+				Error: &schema.APIError{Message: err.Error(), Code: code},
+			},
+		)
 	}
 
 	router := fiber.New(fiberCfg)
@@ -125,86 +167,28 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		router.Use(recover.New())
 	}
 
-	if !appConfig.DisableMetrics {
-		metricsService, err := services.NewLocalAIMetricsService()
-		if err != nil {
-			return nil, err
-		}
-
-		if metricsService != nil {
-			router.Use(localai.LocalAIMetricsAPIMiddleware(metricsService))
-			router.Hooks().OnShutdown(func() error {
-				return metricsService.Shutdown()
-			})
-		}
-
-	}
-	// Health Checks should always be exempt from auth, so register these first
-	routes.HealthRoutes(router)
-
-	kaConfig, err := middleware.GetKeyAuthConfig(appConfig)
-	if err != nil || kaConfig == nil {
-		return nil, fmt.Errorf("failed to create key auth config: %w", err)
-	}
-
-	// Auth is applied to _all_ endpoints. No exceptions. Filtering out endpoints to bypass is the role of the Filter property of the KeyAuth Configuration
-	router.Use(v2keyauth.New(*kaConfig))
-
-	if appConfig.CORS {
-		var c func(ctx *fiber.Ctx) error
-		if appConfig.CORSAllowOrigins == "" {
-			c = cors.New()
-		} else {
-			c = cors.New(cors.Config{AllowOrigins: appConfig.CORSAllowOrigins})
-		}
-
-		router.Use(c)
-	}
-
-	if appConfig.CSRF {
-		log.Debug().Msg("Enabling CSRF middleware. Tokens are now required for state-modifying requests")
-		router.Use(csrf.New())
-	}
-
 	// Load config jsons
 	utils.LoadConfig(appConfig.UploadDir, openai.UploadedFilesFile, &openai.UploadedFiles)
 	utils.LoadConfig(appConfig.ConfigsDir, openai.AssistantsConfigFile, &openai.Assistants)
 	utils.LoadConfig(appConfig.ConfigsDir, openai.AssistantsFileConfigFile, &openai.AssistantFiles)
 
-	cl := &config.BackendConfigLoader{}
-	ml := &model.ModelLoader{}
-	modelStatus := func() (map[string]string, map[string]string) {
-		return nil, nil
-	}
-
 	router.Get("/", func(c *fiber.Ctx) error {
-		backendConfigs := cl.GetAllBackendConfigs()
-		galleryConfigs := map[string]*gallery.Config{}
-
-		for _, m := range backendConfigs {
-			cfg, err := gallery.GetLocalModelConfiguration(ml.ModelPath, m.Name)
-			if err != nil {
-				continue
-			}
-			galleryConfigs[m.Name] = cfg
+		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		if err != nil {
+			log.Error().Err(err).Msg("getModels")
 		}
-
-		modelsWithoutConfig, _ := services.ListModels(cl, ml, config.NoFilterFn, services.LOOSE_ONLY)
-
-		// Get model statuses to display in the UI the operation in progress
-		processingModels, taskTypes := modelStatus()
 
 		summary := fiber.Map{
 			"Title":             "LocalAI API - " + internal.PrintableVersion(),
 			"Version":           internal.PrintableVersion(),
 			"BaseURL":           laihttputils.BaseURL(c),
-			"Models":            modelsWithoutConfig,
-			"ModelsConfig":      backendConfigs,
-			"GalleryConfig":     galleryConfigs,
+			"Models":            models,
+			"ModelsConfig":      []config.BackendConfig{},
+			"GalleryConfig":     map[string]*gallery.Config{},
 			"IsP2PEnabled":      p2p.IsP2PEnabled(),
 			"ApplicationConfig": appConfig,
-			"ProcessingModels":  processingModels,
-			"TaskTypes":         taskTypes,
+			"ProcessingModels":  map[string]string{},
+			"TaskTypes":         map[string]string{},
 		}
 
 		if string(c.Context().Request.Header.ContentType()) == "application/json" || len(c.Accepts("html")) == 0 {
@@ -218,12 +202,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 
 	// Show the Chat page
 	router.Get("/chat/:model", func(c *fiber.Ctx) error {
-		backendConfigs, _ := services.ListModels(cl, ml, config.NoFilterFn, services.SKIP_IF_CONFIGURED)
+		models, err := getModels("http://127.0.0.1:8080/v1/models", "")
+		if err != nil {
+			log.Error().Err(err).Msg("getModels")
+		}
 
 		summary := fiber.Map{
 			"Title":        "LocalAI - Chat with " + c.Params("model"),
 			"BaseURL":      laihttputils.BaseURL(c),
-			"ModelsConfig": backendConfigs,
+			"ModelsConfig": models,
 			"Model":        c.Params("model"),
 			"Version":      internal.PrintableVersion(),
 			"IsP2PEnabled": p2p.IsP2PEnabled(),
@@ -234,9 +221,12 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/talk/", func(c *fiber.Ctx) error {
-		backendConfigs, _ := services.ListModels(cl, ml, config.NoFilterFn, services.SKIP_IF_CONFIGURED)
+		models, err := getModels("http://127.0.0.1:8080/v1/models", "")
+		if err != nil {
+			log.Error().Err(err).Msg("getModels")
+		}
 
-		if len(backendConfigs) == 0 {
+		if len(models) == 0 {
 			// If no model is available redirect to the index which suggests how to install models
 			return c.Redirect(laihttputils.BaseURL(c))
 		}
@@ -244,8 +234,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		summary := fiber.Map{
 			"Title":        "LocalAI - Talk",
 			"BaseURL":      laihttputils.BaseURL(c),
-			"ModelsConfig": backendConfigs,
-			"Model":        backendConfigs[0],
+			"ModelsConfig": models,
+			"Model":        models[0],
 			"IsP2PEnabled": p2p.IsP2PEnabled(),
 			"Version":      internal.PrintableVersion(),
 		}
@@ -255,19 +245,21 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/chat/", func(c *fiber.Ctx) error {
+		models, err := getModels("http://127.0.0.1:8080/v1/models", "")
+		if err != nil {
+			log.Error().Err(err).Msg("getModels")
+		}
 
-		backendConfigs, _ := services.ListModels(cl, ml, config.NoFilterFn, services.SKIP_IF_CONFIGURED)
-
-		if len(backendConfigs) == 0 {
+		if len(models) == 0 {
 			// If no model is available redirect to the index which suggests how to install models
 			return c.Redirect(laihttputils.BaseURL(c))
 		}
 
 		summary := fiber.Map{
-			"Title":        "LocalAI - Chat with " + backendConfigs[0],
+			"Title":        "LocalAI - Chat with " + models[0],
 			"BaseURL":      laihttputils.BaseURL(c),
-			"ModelsConfig": backendConfigs,
-			"Model":        backendConfigs[0],
+			"ModelsConfig": models,
+			"Model":        models[0],
 			"Version":      internal.PrintableVersion(),
 			"IsP2PEnabled": p2p.IsP2PEnabled(),
 		}
@@ -277,12 +269,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/text2image/:model", func(c *fiber.Ctx) error {
-		backendConfigs := cl.GetAllBackendConfigs()
+		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		if err != nil {
+			log.Error().Err(err).Msg("getModels")
+		}
 
 		summary := fiber.Map{
 			"Title":        "LocalAI - Generate images with " + c.Params("model"),
 			"BaseURL":      laihttputils.BaseURL(c),
-			"ModelsConfig": backendConfigs,
+			"ModelsConfig": models,
 			"Model":        c.Params("model"),
 			"Version":      internal.PrintableVersion(),
 			"IsP2PEnabled": p2p.IsP2PEnabled(),
@@ -293,19 +288,21 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/text2image/", func(c *fiber.Ctx) error {
+		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		if err != nil {
+			log.Error().Err(err).Msg("getModels")
+		}
 
-		backendConfigs := cl.GetAllBackendConfigs()
-
-		if len(backendConfigs) == 0 {
+		if len(models) == 0 {
 			// If no model is available redirect to the index which suggests how to install models
 			return c.Redirect(laihttputils.BaseURL(c))
 		}
 
 		summary := fiber.Map{
-			"Title":        "LocalAI - Generate images with " + backendConfigs[0].Name,
+			"Title":        "LocalAI - Generate images with " + models[0].Name,
 			"BaseURL":      laihttputils.BaseURL(c),
-			"ModelsConfig": backendConfigs,
-			"Model":        backendConfigs[0].Name,
+			"ModelsConfig": models,
+			"Model":        models[0].Name,
 			"Version":      internal.PrintableVersion(),
 			"IsP2PEnabled": p2p.IsP2PEnabled(),
 		}
@@ -315,12 +312,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/tts/:model", func(c *fiber.Ctx) error {
-		backendConfigs := cl.GetAllBackendConfigs()
+		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		if err != nil {
+			log.Error().Err(err).Msg("getModels")
+		}
 
 		summary := fiber.Map{
 			"Title":        "LocalAI - Generate images with " + c.Params("model"),
 			"BaseURL":      laihttputils.BaseURL(c),
-			"ModelsConfig": backendConfigs,
+			"ModelsConfig": models,
 			"Model":        c.Params("model"),
 			"Version":      internal.PrintableVersion(),
 			"IsP2PEnabled": p2p.IsP2PEnabled(),
@@ -331,19 +331,21 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/tts/", func(c *fiber.Ctx) error {
+		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		if err != nil {
+			log.Error().Err(err).Msg("getModels")
+		}
 
-		backendConfigs := cl.GetAllBackendConfigs()
-
-		if len(backendConfigs) == 0 {
+		if len(models) == 0 {
 			// If no model is available redirect to the index which suggests how to install models
 			return c.Redirect(laihttputils.BaseURL(c))
 		}
 
 		summary := fiber.Map{
-			"Title":        "LocalAI - Generate audio with " + backendConfigs[0].Name,
+			"Title":        "LocalAI - Generate audio with " + models[0].Name,
 			"BaseURL":      laihttputils.BaseURL(c),
-			"ModelsConfig": backendConfigs,
-			"Model":        backendConfigs[0].Name,
+			"ModelsConfig": models,
+			"Model":        models[0].Name,
 			"IsP2PEnabled": p2p.IsP2PEnabled(),
 			"Version":      internal.PrintableVersion(),
 		}
