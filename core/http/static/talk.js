@@ -132,6 +132,7 @@ async function sendAudioToWhisper(audioBlob) {
 
     const result = await response.json();
     console.log("Whisper result:", result)
+    await updateUsage();
     return result.text;
 }
 
@@ -154,6 +155,8 @@ async function sendTextToChatGPT(text) {
     const result = await response.json();
     const responseText = result.choices[0].message.content;
     conversationHistory.push({ role: "assistant", content: responseText });
+
+    await updateUsage();
 
     setResetTimer();
 
@@ -179,6 +182,9 @@ async function getTextToSpeechAudio(text) {
     });
 
     const audioBlob = await response.blob();
+
+    await updateUsage();
+
     return audioBlob;  // Return the blob directly
 }
 

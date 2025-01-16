@@ -76,6 +76,8 @@ async function promptDallE(key, input) {
   img.src = url;  // Set the source of the image
   img.alt = 'Generated image';            // Set the alt text of the image
 
+  await updateUsage();
+
   div.innerHTML = '';                             // Clear the existing content of the div
   div.appendChild(img);                           // Add the new img element to the div
 

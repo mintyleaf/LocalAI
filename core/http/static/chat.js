@@ -242,6 +242,7 @@ function readInputImage() {
       // Perform any cleanup if necessary
       reader.releaseLock();
     }
+    await updateUsage();
 
     // Remove class "loader" from the element with "loader" id
     //document.getElementById("loader").classList.remove("loader");

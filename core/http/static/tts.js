@@ -44,6 +44,8 @@ async function tts(key, input) {
   const blob = await response.blob();
   link.href=window.URL.createObjectURL(blob);
 
+  await updateUsage();
+
   div.innerHTML = '';                             // Clear the existing content of the div
   div.appendChild(link);                           // Add the new img element to the div
   console.log(link)

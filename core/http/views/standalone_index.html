@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+{{template "views/partials/head" .}}
+
+<body class="bg-gray-900 text-gray-200">
+<div class="flex flex-col min-h-screen">
+
+    {{template "views/partials/navbar" .}}
+
+    <div class="container mx-auto px-4 flex-grow">
+        <div class="header text-center py-12">
+            <h1 class="text-5xl font-bold text-gray-100">Welcome, {{.Username}}!</h1>
+            <p class="mt-4 text-lg">Powered by LocalAI</p>
+        </div>
+    </div>
+
+    {{template "views/partials/footer" .}}
+</div>
+
+</body>
+</html>

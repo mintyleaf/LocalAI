@@ -14,42 +14,118 @@
             </div>
             <!-- Navigation links -->
             <div class="hidden lg:flex lg:items-center lg:justify-end lg:flex-1 lg:w-0">
-                <a href="./" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fas fa-home pr-2"></i>Home</a>
-                <a href="https://localai.io" class="text-gray-400 hover:text-white px-3 py-2 rounded" target="_blank" ><i class="fas fa-book-reader pr-2"></i> Documentation</a>
-                <a href="browse/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fas fa-brain pr-2"></i> Models</a>
-                <a href="chat/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-comments pr-2"></i> Chat</a>
-                <a href="text2image/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fas fa-image pr-2"></i> Generate images</a>
+                <a href="chat/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-comments pr-2"></i> Chat </a>
+                <a href="text2image/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fas fa-image pr-2"></i> Generate images </a>
                 <a href="tts/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-music pr-2"></i> TTS </a>
                 <a href="talk/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-phone pr-2"></i> Talk </a>
-                {{ if .IsP2PEnabled }}
-                <a href="p2p/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-circle-nodes"></i> Swarm </a>
-                {{ end }}
-                <a href="swagger/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fas fa-code pr-2"></i> API</a>
+                <div class="w-px mx-2 self-stretch bg-gradient-to-tr from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"></div>
+                <a data-dropdown-toggle="dropdownHeadSelect" class="text-gray-400 hover:text-white px-3 py-2 rounded capitalize"><i class="fa-solid fa-server pr-2"></i> <label id="dropdownHeadText">{{ .Head }}</label> <i class="text-sm fa-solid fa-caret-down pl-1"></i></a>
+                <div id="dropdownHeadSelect" class="z-10 hidden bg-gray-800 shadow-lg rounded-lg">
+                    <div class="p-3 flex flex-col gap-3">
+                        {{ range .Heads }}
+                        <div class="inline-flex items-center">
+                            <label class="relative flex items-center cursor-pointer h-6" for="html">
+                                <input {{if eq . $.Head}} checked {{end}} id="head-select-{{.}}" onchange="submitHeadRadio()" value="{{.}}" name="head-radio" type="radio" class="peer h-4 w-4 cursor-pointer appearance-none rounded-full border-2 border-gray-400 transition-all">
+                                <span class="absolute bg-gray-300 w-2 h-2 rounded-full opacity-0 peer-checked:opacity-100 transition-opacity duration-200 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                </span>
+                            </label>
+                            <label class="ml-2 text-sm text-gray-400 hover:text-white cursor-pointer capitalize" for="head-select-{{.}}"> {{.}} </label>
+                        </div>
+                        {{ end }}
+                    </div>
+                </div>
+                <div class="px-3 text-gray-400 hover:text-white">
+                    <a data-dropdown-toggle="dropdownAccount">
+                        <p class="text-base"><i class="text-sm fa-solid fa-user pr-2"></i>{{.Username}}</p>
+                        <p id="usage-text" class="text-sm">{{if lt (int .Usage.Limit) 0}}Unlimited tokens{{else}}{{.Balance}} tokens{{end}}</p>
+                    </a>
+                </div>
+                <div id="dropdownAccount" class="z-10 hidden bg-gray-800 shadow-lg rounded-lg">
+                    <div class="p-3 flex flex-col gap-3">
+                        <a href="/" class="block text-sm text-gray-400 hover:text-white rounded"><i class="text-base fa-solid fa-home pr-1"></i> Home </a>
+                        <a href="logout" class="block text-sm text-gray-400 hover:text-white rounded"><i class="text-base fa-solid fa-right-from-bracket pr-1"></i> Logout </a>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Collapsible menu for small screens -->
         <div class="hidden lg:hidden" id="mobile-menu">
-            <div class="pt-4 pb-3 border-t border-gray-700">
-                <a href="./" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fas fa-home pr-2"></i>Home</a>
-                <a href="https://localai.io" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1" target="_blank" ><i class="fas fa-book-reader pr-2"></i> Documentation</a>
-                <a href="browse/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fas fa-brain pr-2"></i> Models</a>
-                <a href="chat/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fa-solid fa-comments pr-2"></i> Chat</a>
-                <a href="text2image/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fas fa-image pr-2"></i> Generate images</a>
+            <div class="flex flex-col pt-4 pb-3">
+                <div class="px-3 py-2 text-gray-400 hover:text-white">
+                    <a href="/">
+                        <p class="text-xl"><i class="text-base fa-solid fa-user pr-2"></i>{{.Username}}</p>
+                        <p id="mobile-usage-text" class="text-sm">{{if lt (int .Usage.Limit) 0}}Unlimited tokens{{else}}{{.Balance}} tokens{{end}}</p>
+                    </a>
+                </div>
+                <a id="mobile-head-select" class="text-gray-400 hover:text-white px-3 py-2 rounded mt-1 capitalize"><i class="fa-solid fa-server pr-2"></i> <label id="dropdownHeadMobileText">{{.Head}}</label> <i class="text-sm fa-solid fa-caret-down pl-1"></i></a>
+                <div id="mobile-head-menu" class="hidden">
+                    <div class="p-3 flex flex-col gap-3">
+                        {{ range .Heads }}
+                        <div class="inline-flex items-center">
+                            <label class="relative flex items-center cursor-pointer h-6" for="html">
+                                <input {{if eq . $.Head}} checked {{end}} id="mobile-head-select-{{.}}" onchange="submitMobileHeadRadio()" value="{{.}}" name="mobile-head-radio" type="radio" class="peer h-4 w-4 cursor-pointer appearance-none rounded-full border-2 border-gray-400 transition-all">
+                                <span class="absolute bg-gray-300 w-2 h-2 rounded-full opacity-0 peer-checked:opacity-100 transition-opacity duration-200 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                </span>
+                            </label>
+                            <label class="ml-2 text-base text-gray-400 hover:text-white cursor-pointer capitalize" for="mobile-head-select-{{.}}"> {{.}} </label>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+                <hr class="my-2 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />
+                <a href="chat/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fa-solid fa-comments pr-2"></i> Chat </a>
+                <a href="text2image/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fas fa-image pr-2"></i> Generate images </a>
                 <a href="tts/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fa-solid fa-music pr-2"></i> TTS </a>
                 <a href="talk/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fa-solid fa-phone pr-2"></i> Talk </a>
-                {{ if .IsP2PEnabled }}
-                <a href="p2p/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fa-solid fa-circle-nodes"></i> Swarm </a>
-                {{ end }}
-                <a href="swagger/" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fas fa-code pr-2"></i> API</a>
+                <hr class="my-2 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />
+                <a href="logout" class="block text-gray-400 hover:text-white px-3 py-2 rounded mt-1"><i class="fa-solid fa-right-from-bracket pr-2"></i> Logout </a>
             </div>
         </div>
     </div>
 </nav>
 
 <script>
-    // JavaScript to toggle the mobile menu
+    function submitHeadRadio() {
+        var headEls = document.getElementsByName('head-radio');
+        for (i = 0; i < headEls.length; i++) {
+            if (headEls[i].checked) {
+                document.cookie="LocalAI-Head=" + headEls[i].value + "; path=/;";
+                document.getElementById('dropdownHeadText').textContent = headEls[i].value;
+            }
+        }
+    }
+    function submitMobileHeadRadio() {
+        var headEls = document.getElementsByName('mobile-head-radio');
+        for (i = 0; i < headEls.length; i++) {
+            if (headEls[i].checked) {
+                document.cookie="LocalAI-Head=" + headEls[i].value + "; path=/;";
+                document.getElementById('dropdownHeadMobileText').textContent = headEls[i].value;
+            }
+        }
+    }
+    async function updateUsage() {
+        const response = await fetch("me", {
+          method: "GET",
+          credentials: 'include',
+        });
+        const json = await response.json();
+        const limit = json.usage.limit
+        const period_total = json.usage.period_total
+        var text = "Unlimited tokens"
+        if (limit > -1) {
+            text = limit - period_total + " tokens"
+        }
+
+        document.getElementById('usage-text').textContent = text
+        document.getElementById('mobile-usage-text').textContent = text
+    }
+
     document.getElementById('menu-toggle').addEventListener('click', function () {
         var mobileMenu = document.getElementById('mobile-menu');
+        mobileMenu.classList.toggle('hidden');
+    });
+    document.getElementById('mobile-head-select').addEventListener('click', function () {
+        var mobileMenu = document.getElementById('mobile-head-menu');
         mobileMenu.classList.toggle('hidden');
     });
 </script>

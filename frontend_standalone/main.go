@@ -3,19 +3,15 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 
-	"github.com/mudler/LocalAI/internal"
 	"github.com/mudler/LocalAI/pkg/utils"
 
 	"github.com/mudler/LocalAI/core/config"
-	"github.com/mudler/LocalAI/core/gallery"
 	laihttp "github.com/mudler/LocalAI/core/http"
 	"github.com/mudler/LocalAI/core/http/endpoints/openai"
 	"github.com/mudler/LocalAI/core/http/middleware"
 	laihttputils "github.com/mudler/LocalAI/core/http/utils"
-	"github.com/mudler/LocalAI/core/p2p"
 
 	"github.com/mudler/LocalAI/core/schema"
 
@@ -43,6 +39,21 @@ import (
 // @in header
 // @name Authorization
 
+type Me struct {
+	Username string `json:"username"`
+	Usage    Usage  `json:"usage"`
+}
+
+type Usage struct {
+	AllTimeTotal      int `json:"all_time_total"`
+	AllTimeCompletion int `json:"all_time_completion"`
+	AllTimePrompt     int `json:"all_time_prompt"`
+	PeriodTotal       int `json:"period_total"`
+	PeriodCompletion  int `json:"period_completion"`
+	PeriodPrompt      int `json:"period_prompt"`
+	Limit             int `json:"limit"`
+}
+
 func main() {
 	appHTTP, err := API(&config.ApplicationConfig{})
 	if err != nil {
@@ -57,26 +68,24 @@ func main() {
 
 }
 
-func makeModelsRequest(url, bearerKey string) (schema.ModelsDataResponse, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", bearerKey)
+func makeModelsRequest(c *fiber.Ctx) (schema.ModelsDataResponse, error) {
 	modelsResponse := schema.ModelsDataResponse{}
 
+	agent := fiber.AcquireAgent()
+	agent.Request().Header.SetMethod("GET")
+	agent.Request().Header.SetContentType("application/json")
+	agent.Request().SetRequestURI(laihttputils.BaseURL(c) + "/v1/models")
+	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("LocalAI-Head", c.Cookies("LocalAI-Head"))
+	err := agent.Parse()
 	if err != nil {
 		return modelsResponse, err
 	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return modelsResponse, err
+	_, body, errs := agent.Bytes()
+	if len(errs) > 0 {
+		return modelsResponse, errs[0]
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return modelsResponse, err
-	}
 	err = json.Unmarshal(body, &modelsResponse)
 	if err != nil {
 		return modelsResponse, err
@@ -84,8 +93,8 @@ func makeModelsRequest(url, bearerKey string) (schema.ModelsDataResponse, error)
 	return modelsResponse, nil
 }
 
-func getModelsConfigs(url, bearerKey string) ([]config.BackendConfig, error) {
-	modelsResponse, err := makeModelsRequest(url, bearerKey)
+func getModelsConfigs(c *fiber.Ctx) ([]config.BackendConfig, error) {
+	modelsResponse, err := makeModelsRequest(c)
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +108,8 @@ func getModelsConfigs(url, bearerKey string) ([]config.BackendConfig, error) {
 	return response, nil
 }
 
-func getModels(url, bearerKey string) ([]string, error) {
-	modelsResponse, err := makeModelsRequest(url, bearerKey)
+func getModels(c *fiber.Ctx) ([]string, error) {
+	modelsResponse, err := makeModelsRequest(c)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +119,67 @@ func getModels(url, bearerKey string) ([]string, error) {
 		response = append(response, v.ID)
 	}
 	return response, nil
+}
+
+func getMe(c *fiber.Ctx) (string, *Usage, error) {
+	agent := fiber.AcquireAgent()
+	agent.Request().Header.SetMethod("GET")
+	agent.Request().Header.SetContentType("application/json")
+	agent.Request().SetRequestURI(laihttputils.BaseURL(c) + "/me")
+	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	err := agent.Parse()
+	if err != nil {
+		return "", nil, err
+	}
+	_, body, errs := agent.Bytes()
+	if len(errs) > 0 {
+		return "", nil, errs[0]
+	}
+
+	meResponse := Me{}
+
+	err = json.Unmarshal(body, &meResponse)
+	if err != nil {
+		return "", nil, err
+	}
+	return meResponse.Username, &meResponse.Usage, nil
+}
+
+func getHeads(c *fiber.Ctx) ([]string, string, error) {
+	agent := fiber.AcquireAgent()
+	agent.Request().Header.SetMethod("GET")
+	agent.Request().Header.SetContentType("application/json")
+	agent.Request().SetRequestURI(laihttputils.BaseURL(c) + "/heads")
+	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	err := agent.Parse()
+	if err != nil {
+		return nil, "", err
+	}
+	_, body, errs := agent.Bytes()
+	if len(errs) > 0 {
+		return nil, "", errs[0]
+	}
+
+	heads := []string{}
+
+	err = json.Unmarshal(body, &heads)
+	if err != nil {
+		return nil, "", err
+	}
+
+	head := c.Cookies("LocalAI-Head", "")
+	if head == "" {
+		head = heads[0]
+		c.Cookie(&fiber.Cookie{
+			Name:  "LocalAI-Head",
+			Value: head,
+			Path:  "/",
+			// TODO https handling
+			Secure: false,
+		})
+	}
+
+	return heads, head, nil
 }
 
 func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
@@ -173,22 +243,23 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	utils.LoadConfig(appConfig.ConfigsDir, openai.AssistantsFileConfigFile, &openai.AssistantFiles)
 
 	router.Get("/", func(c *fiber.Ctx) error {
-		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		heads, head, err := getHeads(c)
 		if err != nil {
-			log.Error().Err(err).Msg("getModels")
+			log.Error().Err(err).Msg("getHeads")
+		}
+		username, usage, err := getMe(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getMe")
 		}
 
 		summary := fiber.Map{
-			"Title":             "LocalAI API - " + internal.PrintableVersion(),
-			"Version":           internal.PrintableVersion(),
-			"BaseURL":           laihttputils.BaseURL(c),
-			"Models":            models,
-			"ModelsConfig":      []config.BackendConfig{},
-			"GalleryConfig":     map[string]*gallery.Config{},
-			"IsP2PEnabled":      p2p.IsP2PEnabled(),
-			"ApplicationConfig": appConfig,
-			"ProcessingModels":  map[string]string{},
-			"TaskTypes":         map[string]string{},
+			"Title":    "LocalAI",
+			"BaseURL":  laihttputils.BaseURL(c),
+			"Username": username,
+			"Usage":    usage,
+			"Balance":  usage.Limit - usage.PeriodTotal,
+			"Heads":    heads,
+			"Head":     head,
 		}
 
 		if string(c.Context().Request.Header.ContentType()) == "application/json" || len(c.Accepts("html")) == 0 {
@@ -196,24 +267,34 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			return c.Status(fiber.StatusOK).JSON(summary)
 		} else {
 			// Render index
-			return c.Render("views/index", summary)
+			return c.Render("views/standalone_index", summary)
 		}
 	})
 
 	// Show the Chat page
 	router.Get("/chat/:model", func(c *fiber.Ctx) error {
-		models, err := getModels("http://127.0.0.1:8080/v1/models", "")
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		username, usage, err := getMe(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getMe")
+		}
+		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
 
 		summary := fiber.Map{
 			"Title":        "LocalAI - Chat with " + c.Params("model"),
-			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        c.Params("model"),
-			"Version":      internal.PrintableVersion(),
-			"IsP2PEnabled": p2p.IsP2PEnabled(),
+			"Username":     username,
+			"Usage":        usage,
+			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Heads":        heads,
+			"Head":         head,
 		}
 
 		// Render index
@@ -221,7 +302,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/talk/", func(c *fiber.Ctx) error {
-		models, err := getModels("http://127.0.0.1:8080/v1/models", "")
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		username, usage, err := getMe(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getMe")
+		}
+		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -236,8 +325,11 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        models[0],
-			"IsP2PEnabled": p2p.IsP2PEnabled(),
-			"Version":      internal.PrintableVersion(),
+			"Username":     username,
+			"Usage":        usage,
+			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Heads":        heads,
+			"Head":         head,
 		}
 
 		// Render index
@@ -245,7 +337,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/chat/", func(c *fiber.Ctx) error {
-		models, err := getModels("http://127.0.0.1:8080/v1/models", "")
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		username, usage, err := getMe(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getMe")
+		}
+		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -260,8 +360,11 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        models[0],
-			"Version":      internal.PrintableVersion(),
-			"IsP2PEnabled": p2p.IsP2PEnabled(),
+			"Username":     username,
+			"Usage":        usage,
+			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Heads":        heads,
+			"Head":         head,
 		}
 
 		// Render index
@@ -269,7 +372,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/text2image/:model", func(c *fiber.Ctx) error {
-		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		username, usage, err := getMe(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getMe")
+		}
+		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -279,8 +390,11 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        c.Params("model"),
-			"Version":      internal.PrintableVersion(),
-			"IsP2PEnabled": p2p.IsP2PEnabled(),
+			"Username":     username,
+			"Usage":        usage,
+			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Heads":        heads,
+			"Head":         head,
 		}
 
 		// Render index
@@ -288,7 +402,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/text2image/", func(c *fiber.Ctx) error {
-		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		username, usage, err := getMe(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getMe")
+		}
+		models, err := getModelsConfigs(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -303,8 +425,11 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        models[0].Name,
-			"Version":      internal.PrintableVersion(),
-			"IsP2PEnabled": p2p.IsP2PEnabled(),
+			"Username":     username,
+			"Usage":        usage,
+			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Heads":        heads,
+			"Head":         head,
 		}
 
 		// Render index
@@ -312,7 +437,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/tts/:model", func(c *fiber.Ctx) error {
-		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		username, usage, err := getMe(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getMe")
+		}
+		models, err := getModelsConfigs(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -322,8 +455,11 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        c.Params("model"),
-			"Version":      internal.PrintableVersion(),
-			"IsP2PEnabled": p2p.IsP2PEnabled(),
+			"Username":     username,
+			"Usage":        usage,
+			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Heads":        heads,
+			"Head":         head,
 		}
 
 		// Render index
@@ -331,7 +467,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/tts/", func(c *fiber.Ctx) error {
-		models, err := getModelsConfigs("http://127.0.0.1:8080/v1/models", "")
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		username, usage, err := getMe(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getMe")
+		}
+		models, err := getModelsConfigs(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -346,8 +490,11 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        models[0].Name,
-			"IsP2PEnabled": p2p.IsP2PEnabled(),
-			"Version":      internal.PrintableVersion(),
+			"Username":     username,
+			"Usage":        usage,
+			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Heads":        heads,
+			"Head":         head,
 		}
 
 		// Render index
