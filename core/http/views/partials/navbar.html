@@ -4,7 +4,7 @@
             <div class="flex items-center">
                 <!-- Logo Image: Replace 'logo_url_here' with your actual logo URL -->
                 <a href="./" class="text-white text-xl font-bold"><img src="https://github.com/go-skynet/LocalAI/assets/2420543/0966aa2a-166e-4f99-a3e5-6c915fc997dd" alt="LocalAI Logo" class="h-10 mr-3 border-2 border-gray-300 shadow rounded"></a>
-                <a href="./" class="text-white text-xl font-bold">LocalAI</a>
+                <a href="./" class="text-white text-xl font-bold">Nebula</a>
             </div>
             <!-- Menu button for small screens -->
             <div class="lg:hidden">
@@ -19,7 +19,7 @@
                 <a href="tts/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-music pr-2"></i> TTS </a>
                 <a href="talk/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-phone pr-2"></i> Talk </a>
                 <div class="w-px mx-2 self-stretch bg-gradient-to-tr from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"></div>
-                <a data-dropdown-toggle="dropdownHeadSelect" class="text-gray-400 hover:text-white px-3 py-2 rounded capitalize"><i class="fa-solid fa-server pr-2"></i> <label id="dropdownHeadText">{{ .Head }}</label> <i class="text-sm fa-solid fa-caret-down pl-1"></i></a>
+                <a data-dropdown-toggle="dropdownHeadSelect" class="text-gray-400 hover:text-white px-3 py-2 rounded capitalize hover:cursor-pointer"><i class="fa-solid fa-server pr-2"></i> <label id="dropdownHeadText" class="hover:cursor-pointer">{{ .Head }}</label> <i class="text-sm fa-solid fa-caret-down pl-1"></i></a>
                 <div id="dropdownHeadSelect" class="z-10 hidden bg-gray-800 shadow-lg rounded-lg">
                     <div class="p-3 flex flex-col gap-3">
                         {{ range .Heads }}
@@ -34,7 +34,7 @@
                         {{ end }}
                     </div>
                 </div>
-                <div class="px-3 text-gray-400 hover:text-white">
+                <div class="px-3 text-gray-400 hover:text-white hover:cursor-pointer">
                     <a data-dropdown-toggle="dropdownAccount">
                         <p class="text-base"><i class="text-sm fa-solid fa-user pr-2"></i>{{.Username}}</p>
                         <p id="usage-text" class="text-sm">{{if lt (int .Usage.Limit) 0}}Unlimited tokens{{else}}{{.Balance}} tokens{{end}}</p>

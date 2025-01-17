@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/mudler/LocalAI/pkg/utils"
@@ -42,6 +43,7 @@ import (
 type Me struct {
 	Username string `json:"username"`
 	Usage    Usage  `json:"usage"`
+	Token    string `json:"token"`
 }
 
 type Usage struct {
@@ -121,28 +123,30 @@ func getModels(c *fiber.Ctx) ([]string, error) {
 	return response, nil
 }
 
-func getMe(c *fiber.Ctx) (string, *Usage, error) {
+func getMe(c *fiber.Ctx) (Me, error) {
 	agent := fiber.AcquireAgent()
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().Header.SetContentType("application/json")
 	agent.Request().SetRequestURI(laihttputils.BaseURL(c) + "/me")
 	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
 	err := agent.Parse()
-	if err != nil {
-		return "", nil, err
-	}
-	_, body, errs := agent.Bytes()
-	if len(errs) > 0 {
-		return "", nil, errs[0]
-	}
-
 	meResponse := Me{}
+	if err != nil {
+		return meResponse, err
+	}
+	statusCode, body, errs := agent.Bytes()
+	if len(errs) > 0 {
+		return meResponse, errs[0]
+	}
+	if statusCode != http.StatusOK {
+		return meResponse, fmt.Errorf("Non 200 OK status code: %d", statusCode)
+	}
 
 	err = json.Unmarshal(body, &meResponse)
 	if err != nil {
-		return "", nil, err
+		return meResponse, err
 	}
-	return meResponse.Username, &meResponse.Usage, nil
+	return meResponse, nil
 }
 
 func getHeads(c *fiber.Ctx) ([]string, string, error) {
@@ -155,9 +159,12 @@ func getHeads(c *fiber.Ctx) ([]string, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	_, body, errs := agent.Bytes()
+	statusCode, body, errs := agent.Bytes()
 	if len(errs) > 0 {
 		return nil, "", errs[0]
+	}
+	if statusCode != http.StatusOK {
+		return nil, "", fmt.Errorf("Non 200 OK status code: %d", statusCode)
 	}
 
 	heads := []string{}
@@ -247,17 +254,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
-		username, usage, err := getMe(c)
-		if err != nil {
-			log.Error().Err(err).Msg("getMe")
-		}
+		me, _ := getMe(c)
 
 		summary := fiber.Map{
 			"Title":    "LocalAI",
 			"BaseURL":  laihttputils.BaseURL(c),
-			"Username": username,
-			"Usage":    usage,
-			"Balance":  usage.Limit - usage.PeriodTotal,
+			"Username": me.Username,
+			"Usage":    me.Usage,
+			"Token":    me.Token,
+			"Balance":  me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":    heads,
 			"Head":     head,
 		}
@@ -277,7 +282,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
-		username, usage, err := getMe(c)
+		me, err := getMe(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
@@ -290,9 +295,9 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Title":        "LocalAI - Chat with " + c.Params("model"),
 			"ModelsConfig": models,
 			"Model":        c.Params("model"),
-			"Username":     username,
-			"Usage":        usage,
-			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Username":     me.Username,
+			"Usage":        me.Usage,
+			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -306,7 +311,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
-		username, usage, err := getMe(c)
+		me, err := getMe(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
@@ -325,9 +330,9 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        models[0],
-			"Username":     username,
-			"Usage":        usage,
-			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Username":     me.Username,
+			"Usage":        me.Usage,
+			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -341,7 +346,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
-		username, usage, err := getMe(c)
+		me, err := getMe(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
@@ -360,9 +365,9 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        models[0],
-			"Username":     username,
-			"Usage":        usage,
-			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Username":     me.Username,
+			"Usage":        me.Usage,
+			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -376,7 +381,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
-		username, usage, err := getMe(c)
+		me, err := getMe(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
@@ -390,9 +395,9 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        c.Params("model"),
-			"Username":     username,
-			"Usage":        usage,
-			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Username":     me.Username,
+			"Usage":        me.Usage,
+			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -406,7 +411,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
-		username, usage, err := getMe(c)
+		me, err := getMe(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
@@ -425,9 +430,9 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        models[0].Name,
-			"Username":     username,
-			"Usage":        usage,
-			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Username":     me.Username,
+			"Usage":        me.Usage,
+			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -441,7 +446,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
-		username, usage, err := getMe(c)
+		me, err := getMe(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
@@ -455,9 +460,9 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        c.Params("model"),
-			"Username":     username,
-			"Usage":        usage,
-			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Username":     me.Username,
+			"Usage":        me.Usage,
+			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -471,7 +476,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
-		username, usage, err := getMe(c)
+		me, err := getMe(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
@@ -490,9 +495,9 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        models[0].Name,
-			"Username":     username,
-			"Usage":        usage,
-			"Balance":      usage.Limit - usage.PeriodTotal,
+			"Username":     me.Username,
+			"Usage":        me.Usage,
+			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":        heads,
 			"Head":         head,
 		}

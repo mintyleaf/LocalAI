@@ -5,17 +5,94 @@
 <body class="bg-gray-900 text-gray-200">
 <div class="flex flex-col min-h-screen">
 
+{{if .Username}}
     {{template "views/partials/navbar" .}}
 
     <div class="container mx-auto px-4 flex-grow">
-        <div class="header text-center py-12">
+        <div class="header text-center pt-12 pb-6">
             <h1 class="text-5xl font-bold text-gray-100">Welcome, {{.Username}}!</h1>
-            <p class="mt-4 text-lg">Powered by LocalAI</p>
+        </div>
+        <div class="flex flex-col gap-1 py-4 text-center items-center">
+            <p {{if not .Token}}hidden{{end}} id="token-present">Your authorization API token is:</p>
+            <code {{if not .Token}}hidden{{end}} id="token-text" class="text-xs mt-1">{{.Token}}</code>
+            <p {{if .Token}}hidden{{end}} id="token-not-exist">Generate an authorization header API token using the button below</p>
+            <br>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="regenerateToken()">Regenerate token</button>
         </div>
     </div>
+{{else}}
+    <div class="flex flex-col gap-3 items-center justify-center px-6 py-8 mx-auto">
+        <div class="header text-center py-6">
+            <h1 class="text-5xl font-bold text-gray-100">Nebula</h1>
+        </div>
+
+        <form id="login" class="space-y-4" action="/login" method="post">
+            <div>
+                <label for="username" class="block text-sm text-white mb-2">Username</label>
+                <input type="username" name="username" id="username" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="username" required="">
+            </div>
+            <div>
+              <label for="password" class="block text-sm text-white mb-2">Password</label>
+              <input type="password" name="password" id="password" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
+            </div>
+            <button type="submit" class="w-full text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-500 hover:bg-blue-700 focus:ring-primary-800">Login</button>
+            <p class="text-sm text-center font-light text-gray-400">
+                Don’t have an account yet? <a href="#" onclick="showRegister()" class="text-blue-400 hover:text-blue-600 hover:underline">Register</a>
+            </p>
+        </form>
+        <form hidden id="register" class="space-y-4" action="/register" method="post">
+            <div>
+                <label for="username" class="block text-sm text-white mb-2">Username</label>
+                <input type="username" name="username" id="username" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="username" required="">
+            </div>
+            <div>
+              <label for="password" class="block text-sm text-white mb-2">Password</label>
+              <input type="password" name="password" id="password" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
+            </div>
+            <div>
+              <label for="password_confirm" class="block text-sm text-white mb-2">Confirm password</label>
+              <input type="password" name="password_confirm" id="password_confirm" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
+            </div>
+            <button type="submit" class="w-full text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-500 hover:bg-blue-700 focus:ring-primary-800">Register</button>
+            <p class="text-sm text-center font-light text-gray-400">
+                Already have an account? <a href="#" onclick="showLogin()" class="text-blue-400 hover:text-blue-600 hover:underline">Login</a>
+            </p>
+        </form>
+    </div>
+{{end}}
 
     {{template "views/partials/footer" .}}
 </div>
 
 </body>
+
+<script>
+    async function regenerateToken() {
+        await fetch("regenerate", {
+            method: "GET",
+            credentials: 'include',
+        });
+        const response = await fetch("me", {
+          method: "GET",
+          credentials: 'include',
+        });
+        const json = await response.json();
+        const token = json.token
+        document.getElementById('token-text').textContent = token
+        document.getElementById('token-text').style.display = 'block'
+        document.getElementById('token-present').style.display = 'block'
+        document.getElementById('token-not-exist').style.display = 'none'
+    }
+
+    function showRegister() {
+        document.getElementById('register').style.display = 'block'
+        document.getElementById('login').style.display = 'none'
+    }
+
+    function showLogin() {
+        document.getElementById('register').style.display = 'none'
+        document.getElementById('login').style.display = 'block'
+    }
+</script>
+
 </html>
