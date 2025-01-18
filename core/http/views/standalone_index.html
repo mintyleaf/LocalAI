@@ -12,12 +12,33 @@
         <div class="header text-center pt-12 pb-6">
             <h1 class="text-5xl font-bold text-gray-100">Welcome, {{.Username}}!</h1>
         </div>
-        <div class="flex flex-col gap-1 py-4 text-center items-center">
-            <p {{if not .Token}}hidden{{end}} id="token-present">Your authorization API token is:</p>
-            <code {{if not .Token}}hidden{{end}} id="token-text" class="text-xs mt-1">{{.Token}}</code>
-            <p {{if .Token}}hidden{{end}} id="token-not-exist">Generate an authorization header API token using the button below</p>
-            <br>
-            <button class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="regenerateToken()">Regenerate token</button>
+
+        <div>
+            <p class="text-center mb-2">Your usage statistics:</p>
+            <table class="mx-auto w-auto text-left rounded-lg outline outline-1 outline-gray-700 overflow-hidden">
+                <thead class="bg-gray-700">
+                    <tr>
+                        <th></th>
+                        <th class="p-2">Prompt</th>
+                        <th class="p-2">Completion</th>
+                        <th class="p-2">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-gray-800">
+                    <tr>
+                        <th class="p-2">All time</th>
+                        <td class="p-2">{{.Usage.AllTimePrompt}}</td>
+                        <td class="p-2">{{.Usage.AllTimeCompletion}}</td>
+                        <td class="p-2">{{.Usage.AllTimeTotal}}</td>
+                    </tr>
+                    <tr>
+                        <th class="p-2">This period</th>
+                        <td class="p-2">{{.Usage.PeriodPrompt}}</td>
+                        <td class="p-2">{{.Usage.PeriodCompletion}}</td>
+                        <td class="p-2">{{.Usage.PeriodTotal}}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 {{else}}
@@ -67,23 +88,6 @@
 </body>
 
 <script>
-    async function regenerateToken() {
-        await fetch("regenerate", {
-            method: "GET",
-            credentials: 'include',
-        });
-        const response = await fetch("me", {
-          method: "GET",
-          credentials: 'include',
-        });
-        const json = await response.json();
-        const token = json.token
-        document.getElementById('token-text').textContent = token
-        document.getElementById('token-text').style.display = 'block'
-        document.getElementById('token-present').style.display = 'block'
-        document.getElementById('token-not-exist').style.display = 'none'
-    }
-
     function showRegister() {
         document.getElementById('register').style.display = 'block'
         document.getElementById('login').style.display = 'none'
