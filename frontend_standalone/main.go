@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
+	"os"
 
 	"github.com/mudler/LocalAI/pkg/utils"
 
@@ -54,6 +56,21 @@ type Usage struct {
 	PeriodCompletion  int `json:"period_completion"`
 	PeriodPrompt      int `json:"period_prompt"`
 	Limit             int `json:"limit"`
+	BurnedTokens      int `json:"burned_tokens"`
+}
+
+type Machines struct {
+	Machines      map[string]MachineUsage `json:"machine_usage"`
+	TokensTotal   int                     `json:"tokens_total"`
+	WorktimeTotal float64                 `json:"worktime_total"`
+}
+
+type MachineUsage struct {
+	TokensTotal      int     `json:"tokens_total"`
+	TokensCompletion int     `json:"tokens_completion"`
+	TokensPrompt     int     `json:"tokens_prompt"`
+	TimingPrompt     float64 `json:"timing_prompt"`
+	TimingCompletion float64 `json:"timing_completion"`
 }
 
 func main() {
@@ -121,6 +138,67 @@ func getModels(c *fiber.Ctx) ([]string, error) {
 		response = append(response, v.ID)
 	}
 	return response, nil
+}
+
+func round(num float64) int {
+	return int(num + math.Copysign(0.5, num))
+}
+
+func toFixed(num float64, precision int) float64 {
+	output := math.Pow(10, float64(precision))
+	return float64(round(num*output)) / output
+}
+
+func getMachines(c *fiber.Ctx) (Machines, error) {
+	agent := fiber.AcquireAgent()
+	agent.Request().Header.SetMethod("GET")
+	agent.Request().SetRequestURI(laihttputils.BaseURL(c) + "/machines")
+	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	err := agent.Parse()
+	var machinesResponse Machines
+	if err != nil {
+		return machinesResponse, err
+	}
+	statusCode, body, errs := agent.Bytes()
+	if len(errs) > 0 {
+		return machinesResponse, errs[0]
+	}
+	if statusCode != http.StatusOK {
+		return machinesResponse, fmt.Errorf("Non 200 OK status code: %d", statusCode)
+	}
+	err = json.Unmarshal(body, &machinesResponse)
+	if err != nil {
+		return machinesResponse, err
+	}
+
+	machinesResponse.WorktimeTotal = toFixed(machinesResponse.WorktimeTotal*0.001, 1)
+	for k, v := range machinesResponse.Machines {
+		v.TimingCompletion = toFixed(v.TimingCompletion*0.001, 1)
+		v.TimingPrompt = toFixed(v.TimingPrompt*0.001, 1)
+		machinesResponse.Machines[k] = v
+	}
+
+	return machinesResponse, nil
+}
+
+func getAddress(c *fiber.Ctx) (string, error) {
+	agent := fiber.AcquireAgent()
+	agent.Request().Header.SetMethod("GET")
+	agent.Request().SetRequestURI(laihttputils.BaseURL(c) + "/address")
+	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	err := agent.Parse()
+	if err != nil {
+		return "", err
+	}
+	statusCode, body, errs := agent.Bytes()
+	if len(errs) > 0 {
+		return "", errs[0]
+	}
+	if statusCode != http.StatusOK {
+		return "", fmt.Errorf("Non 200 OK status code: %d", statusCode)
+	}
+
+	return string(body), err
 }
 
 func getMe(c *fiber.Ctx) (Me, error) {
@@ -191,6 +269,9 @@ func getHeads(c *fiber.Ctx) ([]string, string, error) {
 
 func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 
+	contractAddress := os.Getenv("CONTRACT_ADDRESS")
+	contractABI := os.Getenv("CONTRACT_ABI")
+
 	fiberCfg := fiber.Config{
 		Views:     laihttp.RenderEngine(),
 		BodyLimit: appConfig.UploadLimitMB * 1024 * 1024, // this is the default limit of 4MB
@@ -255,6 +336,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			log.Error().Err(err).Msg("getHeads")
 		}
 		me, _ := getMe(c)
+		machines, _ := getMachines(c)
 
 		summary := fiber.Map{
 			"BaseURL":  laihttputils.BaseURL(c),
@@ -264,6 +346,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Balance":  me.Usage.Limit - me.Usage.PeriodTotal,
 			"Heads":    heads,
 			"Head":     head,
+			"ToBurn":   machines.TokensTotal - me.Usage.BurnedTokens,
+			"Machines": machines,
 		}
 
 		if string(c.Context().Request.Header.ContentType()) == "application/json" || len(c.Accepts("html")) == 0 {
@@ -281,15 +365,20 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			log.Error().Err(err).Msg("getHeads")
 		}
 		me, _ := getMe(c)
+		machines, _ := getMachines(c)
 
 		summary := fiber.Map{
-			"BaseURL":  laihttputils.BaseURL(c),
-			"Username": me.Username,
-			"Usage":    me.Usage,
-			"Token":    me.Token,
-			"Balance":  me.Usage.Limit - me.Usage.PeriodTotal,
-			"Heads":    heads,
-			"Head":     head,
+			"BaseURL":         laihttputils.BaseURL(c),
+			"Username":        me.Username,
+			"Usage":           me.Usage,
+			"Token":           me.Token,
+			"Balance":         me.Usage.Limit - me.Usage.PeriodTotal,
+			"Heads":           heads,
+			"Head":            head,
+			"ContractABI":     contractABI,
+			"ContractAddress": contractAddress,
+			"ToBurn":          machines.TokensTotal - me.Usage.BurnedTokens,
+			"Machines":        machines,
 		}
 
 		if string(c.Context().Request.Header.ContentType()) == "application/json" || len(c.Accepts("html")) == 0 {

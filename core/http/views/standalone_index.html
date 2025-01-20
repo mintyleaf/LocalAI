@@ -1,93 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
-{{template "views/partials/head" .}}
-
-<body class="bg-gray-900 text-gray-200">
-<div class="flex flex-col min-h-screen">
-
-{{if .Username}}
+  {{template "views/partials/head" .}}
+  <body class="bg-gray-900 text-gray-200">
+    <div class="flex flex-col min-h-screen">
+      {{if .Username}}
     {{template "views/partials/navbar" .}}
-
-    <div class="container mx-auto px-4 flex-grow">
+      <div class="container mx-auto px-4 flex-grow">
         <div class="header text-center pt-12 pb-6">
-            <h1 class="text-5xl font-bold text-gray-100">Welcome, {{.Username}}!</h1>
+          <h1 class="text-5xl font-bold text-gray-100">Welcome, {{.Username}}!</h1>
         </div>
-
-        <div>
-            <p class="text-center mb-2">Your usage statistics:</p>
-            <table class="mx-auto w-auto text-left rounded-lg outline outline-1 outline-gray-700 overflow-hidden">
-                <thead class="bg-gray-700">
-                    <tr>
-                        <th></th>
-                        <th class="p-2">Prompt</th>
-                        <th class="p-2">Completion</th>
-                        <th class="p-2">Total</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-gray-800">
-                    <tr>
-                        <th class="p-2">All time</th>
-                        <td class="p-2">{{.Usage.AllTimePrompt}}</td>
-                        <td class="p-2">{{.Usage.AllTimeCompletion}}</td>
-                        <td class="p-2">{{.Usage.AllTimeTotal}}</td>
-                    </tr>
-                    <tr>
-                        <th class="p-2">This period</th>
-                        <td class="p-2">{{.Usage.PeriodPrompt}}</td>
-                        <td class="p-2">{{.Usage.PeriodCompletion}}</td>
-                        <td class="p-2">{{.Usage.PeriodTotal}}</td>
-                    </tr>
-                </tbody>
+        <div class="container space-y-4">
+          <p class="text-center text-bold text-xl mb-2">Your statistics:</p>
+          <table class="mx-auto w-auto text-left rounded-lg outline outline-1 outline-gray-700 overflow-hidden">
+            <thead class="bg-gray-700">
+              <tr>
+                <th></th>
+                <th class="p-2">Prompt</th>
+                <th class="p-2">Completion</th>
+                <th class="p-2">Total</th>
+              </tr>
+            </thead>
+            <tbody class="bg-gray-800">
+              <tr>
+                <th class="p-2">All time</th>
+                <td class="p-2">{{.Usage.AllTimePrompt}}</td>
+                <td class="p-2">{{.Usage.AllTimeCompletion}}</td>
+                <td class="p-2">{{.Usage.AllTimeTotal}}</td>
+              </tr>
+              <tr>
+                <th class="p-2">This period</th>
+                <td class="p-2">{{.Usage.PeriodPrompt}}</td>
+                <td class="p-2">{{.Usage.PeriodCompletion}}</td>
+                <td class="p-2">{{.Usage.PeriodTotal}}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div {{if eq (len .Machines.Machines) 0}} hidden {{end}} class="container space-y-4">
+            <table class="mt-12 mx-auto w-auto text-left rounded-lg outline outline-1 outline-gray-700 overflow-hidden">
+              <thead class="bg-gray-700">
+                <tr>
+                  <th class="p-2">Connected machines summary</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody class="bg-gray-800">
+                <tr>
+                  <th class="p-2">Tokens total</th>
+                  <td class="p-2">{{.Machines.TokensTotal}}</td>
+                </tr>
+                <tr>
+                  <th class="p-2">To burn</th>
+                  <td class="p-2">{{.ToBurn}}</td>
+                </tr>
+                <tr>
+                  <th class="p-2">Worktime total</th>
+                  <td class="p-2">{{.Machines.WorktimeTotal}}</td>
+                </tr>
+              </tbody>
             </table>
+            <table class="mx-auto w-auto text-left rounded-lg outline outline-1 outline-gray-700 overflow-hidden">
+              <thead class="bg-gray-700">
+                <tr>
+                  <th class="p-2">Name</th>
+                  <th class="p-2">Prompt</th>
+                  <th class="p-2">Completion</th>
+                  <th class="p-2">Total</th>
+                  <th class="p-2">Timing prompt</th>
+                  <th class="p-2">Timing completion</th>
+                </tr>
+              </thead>
+              <tbody class="bg-gray-800">
+                {{range $k, $v := .Machines.Machines}}
+                <tr>
+                  <td class="p-2">{{$k}}</td>
+                  <td class="p-2">{{$v.TokensPrompt}}</td>
+                  <td class="p-2">{{$v.TokensCompletion}}</td>
+                  <td class="p-2">{{$v.TokensTotal}}</td>
+                  <td class="p-2">{{$v.TimingPrompt}}</td>
+                  <td class="p-2">{{$v.TimingCompletion}}</td>
+                </tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
         </div>
-    </div>
-{{else}}
-    <div class="flex flex-col gap-3 items-center justify-center px-6 py-8 mx-auto">
+      </div>
+      {{else}}
+      <div class="flex flex-col gap-3 items-center justify-center px-6 py-8 mx-auto">
         <div class="header text-center py-6">
-            <h1 class="text-5xl font-bold text-gray-100">Nebula</h1>
+          <h1 class="text-5xl font-bold text-gray-100">Nebula</h1>
         </div>
-
         <form id="login" class="space-y-4" action="/login" method="post">
-            <div>
-                <label for="username" class="block text-sm text-white mb-2">Username</label>
-                <input type="username" name="username" id="username" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="username" required="">
-            </div>
-            <div>
-              <label for="password" class="block text-sm text-white mb-2">Password</label>
-              <input type="password" name="password" id="password" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
-            </div>
-            <button type="submit" class="w-full text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-500 hover:bg-blue-700 focus:ring-primary-800">Login</button>
-            <p class="text-sm text-center font-light text-gray-400">
-                Don’t have an account yet? <a href="#" onclick="showRegister()" class="text-blue-400 hover:text-blue-600 hover:underline">Register</a>
-            </p>
+          <div>
+            <label for="username" class="block text-sm text-white mb-2">Username</label>
+            <input type="username" name="username" id="username" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="username" required="">
+          </div>
+          <div>
+            <label for="password" class="block text-sm text-white mb-2">Password</label>
+            <input type="password" name="password" id="password" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
+          </div>
+          <button type="submit" class="w-full text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-500 hover:bg-blue-700 focus:ring-primary-800">Login</button>
+          <p class="text-sm text-center font-light text-gray-400">
+            Don’t have an account yet?
+            <a href="#" onclick="showRegister()" class="text-blue-400 hover:text-blue-600 hover:underline">Register</a>
+          </p>
         </form>
         <form hidden id="register" class="space-y-4" action="/register" method="post">
-            <div>
-                <label for="username" class="block text-sm text-white mb-2">Username</label>
-                <input type="username" name="username" id="username" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="username" required="">
-            </div>
-            <div>
-              <label for="password" class="block text-sm text-white mb-2">Password</label>
-              <input type="password" name="password" id="password" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
-            </div>
-            <div>
-              <label for="password_confirm" class="block text-sm text-white mb-2">Confirm password</label>
-              <input type="password" name="password_confirm" id="password_confirm" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
-            </div>
-            <button type="submit" class="w-full text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-500 hover:bg-blue-700 focus:ring-primary-800">Register</button>
-            <p class="text-sm text-center font-light text-gray-400">
-                Already have an account? <a href="#" onclick="showLogin()" class="text-blue-400 hover:text-blue-600 hover:underline">Login</a>
-            </p>
+          <div>
+            <label for="username" class="block text-sm text-white mb-2">Username</label>
+            <input type="username" name="username" id="username" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="username" required="">
+          </div>
+          <div>
+            <label for="password" class="block text-sm text-white mb-2">Password</label>
+            <input type="password" name="password" id="password" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
+          </div>
+          <div>
+            <label for="password_confirm" class="block text-sm text-white mb-2">Confirm password</label>
+            <input type="password" name="password_confirm" id="password_confirm" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
+          </div>
+          <button type="submit" class="w-full text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-500 hover:bg-blue-700 focus:ring-primary-800">Register</button>
+          <p class="text-sm text-center font-light text-gray-400">
+            Already have an account?
+            <a href="#" onclick="showLogin()" class="text-blue-400 hover:text-blue-600 hover:underline">Login</a>
+          </p>
         </form>
-    </div>
-{{end}}
+      </div>
+      {{end}}
 
     {{template "views/partials/footer" .}}
-</div>
-
-</body>
-
-<script>
+    </div>
+  </body>
+  <script>
     function showRegister() {
         document.getElementById('register').style.display = 'block'
         document.getElementById('login').style.display = 'none'
@@ -97,6 +140,5 @@
         document.getElementById('register').style.display = 'none'
         document.getElementById('login').style.display = 'block'
     }
-</script>
-
+  </script>
 </html>

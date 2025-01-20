@@ -1,41 +1,115 @@
 
 <!DOCTYPE html>
 <html lang="en">
-{{template "views/partials/head" .}}
-
-<body class="bg-gray-900 text-gray-200">
-<div class="flex flex-col min-h-screen">
-
-    {{template "views/partials/navbar" .}}
-
-    <div class="lg:flex lg:gap-3 px-4 pt-12 mx-auto mb-auto">
-
-      <div class="lg:hidden">
-        <div class="grid grid-flow-col auto-cols-min justify-center gap-6">
-          <a id="sidebar-auth" href="javascript:select('auth')" class="flex text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-key pr-2"></i> Authorization </a>
-          <a id="sidebar-payment" href="javascript:select('payment')" class="flex text-gray-400 hover:text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-money-bill pr-2"></i> Payment </a>
+  {{template "views/partials/head" .}}
+  <body class="bg-gray-900 text-gray-200">
+    <div class="flex flex-col min-h-screen">
+      {{template "views/partials/navbar" .}}
+      <div class="lg:flex lg:gap-3 px-4 pt-12 mx-auto mb-auto">
+        <div class="lg:hidden">
+          <div class="grid grid-flow-col auto-cols-min justify-center gap-6">
+            <a id="sidebar-payment" href="javascript:select('payment')" class="flex truncate text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-money-bill pr-2"></i>
+              Payment</a>
+            <a id="sidebar-auth" href="javascript:select('auth')" class="flex truncate text-gray-400 hover:text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-key pr-2"></i>
+              Authorization</a>
+          </div>
+          <hr
+            class="my-2 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"
+          >
         </div>
-        <hr class="my-2 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />
-      </div>
-
-      <div class="hidden lg:flex">
-        <div class="flex flex-col gap-3 pr-2">
-          <a id="sidebar-auth" href="javascript:select('auth')" class="flex text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-key pr-2"></i> Authorization </a>
-          <a id="sidebar-payment" href="javascript:select('payment')" class="flex text-gray-400 hover:text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-money-bill pr-2"></i> Payment </a>
+        <div class="hidden lg:flex">
+          <div class="flex flex-col gap-3 pr-2">
+            <a id="sidebar-payment" href="javascript:select('payment')" class="flex truncate text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-money-bill pr-2"></i>
+              Payment</a>
+            <a id="sidebar-auth" href="javascript:select('auth')" class="flex truncate text-gray-400 hover:text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-key pr-2"></i>
+              Authorization</a>
+          </div>
+          <div class="w-px mx-2 self-stretch bg-gradient-to-tr from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"></div>
         </div>
-        <div class="w-px mx-2 self-stretch bg-gradient-to-tr from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"></div>
-      </div>
-
-      <div id="settings-auth" class="container mx-auto px-4 flex-grow">
-          <div class="flex flex-col gap-4 py-4">
-              <h2 class="text-2xl w-96">API token</h2>
-              <div>
-                <label for="username" class="block text-sm text-white mb-2">Token</label>
-                <input type="text" id="token-text" class="text-xs border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.Token}}" placeholder="Generate a token using button below" disabled readonly>
+        <div id="settings-payment" class="container mx-auto px-4 flex-grow">
+          <div class="flex flex-col py-4">
+            <h2 class="text-2xl w-96">Wallet address</h2>
+            <div class="flex flex-col py-4 space-y-4">
+              <p hidden id="install-metamask" class="text-base">Please install
+                <a class="underline" href="https://metamask.io/download">Metamask</a></p>
+              <div hidden class="container" id="address-container">
+                <div>
+                  <label for="username" class="block text-sm text-white mb-2">Your crypto wallet address</label>
+                  <input type="text" id="address-text" class="text-sm border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="" placeholder="Connect your Metamask account in the popup window" disabled readonly>
+                </div>
               </div>
-              <button class="mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="regenerateToken()">Regenerate token</button>
-              <h2 class="text-2xl w-96 mt-6">Password</h2>
-            <form class="space-y-4" action="/change_password" method="post">
+            </div>
+            <div hidden class="container" id="payment-container">
+              <h2 class="text-2xl mt-6">Buy tokens</h2>
+              <div class="flex flex-col py-4 space-y-4">
+                <div>
+                  <label for="amount" class="block text-sm text-white mb-2">Current balance</label>
+                  <input type="number" id="balance" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.Balance}}" disabled readonly>
+                </div>
+                <div>
+                  <label for="amount" class="block text-sm text-white mb-2">Amount</label>
+                  <input type="number" id="amount" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="1000" min="1000">
+                  <div class="flex flex-row rounded-md shadow-sm w-full mt-3" role="group" id="amount-group">
+                    <button id="amount-1k" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                      1k
+                    </button>
+                    <button id="amount-10k" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                      10k
+                    </button>
+                    <button id="amount-100k" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                      100k
+                    </button>
+                    <button id="amount-custom" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white" disabled>
+                      Custom
+                    </button>
+                  </div>
+                </div>
+                <p hidden class="text-xs text-red-300 mt-3 w-96" id="buy-transaction-error">Transaction error</p>
+                <p hidden class="text-xs text-white mt-3 w-96" id="buy-transaction-success">Transaction successful! Please wait for your balance to be replenished.</p>
+                <button id="buy-transaction-create" class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="createBuyTransaction()">Create transaction</button>
+                <button id="buy-transaction-loading" hidden disabled class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4">
+                  <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+                  </svg>
+                  Processing...
+                </button>
+              </div>
+              <h2 class="text-2xl mt-6">Burn tokens</h2>
+              <p {{if gt (len .Machines.Machines) 0 }} hidden {{end}} class="text-sm mt-3">You have no worker machines connect to this account.</p>
+              <div {{if eq (len .Machines.Machines) 0}} hidden {{end}} class="container py-4 space-y-4">
+                <div>
+                  <label for="amount" class="block text-sm text-white mb-2">To burn</label>
+                  <input type="number" id="balanceToBurn" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.ToBurn}}" disabled readonly>
+                </div>
+                <div>
+                  <label for="amountToBurn" class="block text-sm text-white mb-2">Amount</label>
+                  <input type="number" id="amountToBurn" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.ToBurn}}" min="1" max="{{.ToBurn}}">
+                </div>
+                <p hidden class="text-xs text-red-300 mt-3 w-96" id="burn-transaction-error">Transaction error</p>
+                <p hidden class="text-xs text-white mt-3 w-96" id="burn-transaction-success">Transaction successful! Please wait for your balance to be replenished.</p>
+                <button id="burn-transaction-create" class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="createBurnTransaction()">Create transaction</button>
+                <button id="burn-transaction-loading" hidden disabled class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4">
+                  <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+                  </svg>
+                  Processing...
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div hidden id="settings-auth" class="container mx-auto px-4 flex-grow">
+          <div class="flex flex-col gap-4 py-4">
+            <h2 class="text-2xl w-96">API token</h2>
+            <div>
+              <label for="username" class="block text-sm text-white mb-2">Token</label>
+              <input type="text" id="token-text" class="text-xs border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.Token}}" placeholder="Generate a token using button below" disabled readonly>
+            </div>
+            <button class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="regenerateToken()">Regenerate token</button>
+            <h2 class="text-2xl w-96 mt-6">Password</h2>
+            <form class="flex flex-col space-y-4" action="/change_password" method="post">
               <div>
                 <label for="old_password" class="block text-sm text-white mb-2">Old password</label>
                 <input type="password" name="old_password" id="old_password" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
@@ -48,25 +122,156 @@
                 <label for="password_confirm" class="block text-sm text-white mb-2">Confirm password</label>
                 <input type="password" name="password_confirm" id="password_confirm" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
               </div>
-              <button type="submit" class="mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Change password</button>
+              <button type="submit" class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Change password</button>
             </form>
           </div>
+        </div>
       </div>
-
-      <div hidden id="settings-payment" class="container mx-auto px-4 flex-grow">
-          <div class="flex flex-col gap-3 py-4">
-            <h2 class="text-2xl w-96">Wallet</h2>
-            <h2 class="text-2xl w-96 mt-6">Buy tokens</h2>
-          </div>
-      </div>
+      {{template "views/partials/footer" .}}
+      <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
     </div>
+  </body>
+  <script>
+    let account = ""
+    initPayment()
 
-    {{template "views/partials/footer" .}}
-</body>
+    let amountEl = document.getElementById('amount')
+    amountEl.addEventListener("change", () => {
+      const value = amountEl.value
+      console.log(value)
+      switch (value) {
+        case "1000":
+          amountButtonChange(0)
+          break;
+        case "10000":
+          amountButtonChange(1)
+          break;
+        case "100000":
+          amountButtonChange(2)
+          break;
+        default:
+          amountButtonChange(3)
+          break;
+      }
+    })
+    amountGroup = document.getElementById('amount-group').children
+    for (let i = 0; i < amountGroup.length-1; i++) {
+      amountGroup[i].addEventListener("click", () => {
+        amountButtonChange(i)
+      })
+    }
 
-<script>
-    var currentPage = "auth"
-    select(window.location.hash.substring(1))
+    async function createBuyTransaction() {
+      document.getElementById('buy-transaction-success').style.display = 'none'
+      document.getElementById('buy-transaction-error').style.display = 'none'
+      document.getElementById('buy-transaction-create').style.display = 'none'
+      document.getElementById('buy-transaction-loading').style.display = 'block'
+      try {
+        const web3 = new Web3(window.ethereum)
+        const contractABI = {{.ContractABI}}
+        const contractAddress = {{.ContractAddress}}
+        const contract = new web3.eth.Contract(JSON.parse(contractABI), contractAddress)
+        const amountInSmallestUnit = parseFloat(amountEl.value) * Math.pow(10, 6)
+
+        if (isNaN(amountInSmallestUnit) || amountInSmallestUnit <= 0) {
+            alert("Invalid amount. Please enter a valid number.")
+            return;
+        }
+
+        await contract.methods.mintForUSDT(amountInSmallestUnit.toString()).send({ from: account });
+        document.getElementById('buy-transaction-success').style.display = 'block'
+      } catch (error) {
+        console.error("Error during transaction:", error)
+        document.getElementById('buy-transaction-error').style.display = 'block'
+        document.getElementById('buy-transaction-error').textContent = "Error during transaction: " + error
+      } finally {
+        document.getElementById('buy-transaction-create').style.display = 'block'
+        document.getElementById('buy-transaction-loading').style.display = 'none'
+      }
+    }
+
+    async function createBurnTransaction() {
+      document.getElementById('burn-transaction-success').style.display = 'none'
+      document.getElementById('burn-transaction-error').style.display = 'none'
+      document.getElementById('burn-transaction-create').style.display = 'none'
+      document.getElementById('burn-transaction-loading').style.display = 'block'
+      try {
+        const web3 = new Web3(window.ethereum)
+        const contractABI = {{.ContractABI}}
+        const contractAddress = {{.ContractAddress}}
+        const contract = new web3.eth.Contract(JSON.parse(contractABI), contractAddress)
+        const amountInSmallestUnit = parseFloat(document.getElementById('amountToBurn').value) * Math.pow(10, 6)
+
+        if (isNaN(amountInSmallestUnit) || amountInSmallestUnit <= 0) {
+            alert("Invalid amount. Please enter a valid number.")
+            return;
+        }
+
+        await contract.methods.burnAndSendUSDT(amountInSmallestUnit.toString()).send({ from: account });
+        document.getElementById('burn-transaction-success').style.display = 'block'
+      } catch (error) {
+        console.error("Error during transaction:", error)
+        document.getElementById('burn-transaction-error').style.display = 'block'
+        document.getElementById('burn-transaction-error').textContent = "Error during transaction: " + error
+      } finally {
+        document.getElementById('burn-transaction-create').style.display = 'block'
+        document.getElementById('burn-transaction-loading').style.display = 'none'
+      }
+    }
+
+    function amountButtonChange(idx) {
+      for (let i = 0; i < amountGroup.length; i++) {
+        el = amountGroup[i]
+        if (el.classList.contains('bg-gray-600')) {
+          el.classList.remove('bg-gray-600')
+        }
+        if (!el.classList.contains('bg-gray-800')) {
+          el.classList.add('bg-gray-800')
+        }
+      }
+      el = amountGroup[idx]
+      if (el.classList.contains('bg-gray-800')) {
+        el.classList.remove('bg-gray-800')
+      }
+      if (!el.classList.contains('bg-gray-600')) {
+        el.classList.add('bg-gray-600')
+      }
+
+      switch (idx) {
+        case 0:
+          amountEl.value = "1000"
+          break;
+        case 1:
+          amountEl.value = "10000"
+          break;
+        case 2:
+          amountEl.value = "100000"
+          break;
+      }
+    }
+
+    async function connectAccount() {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" })
+        account = accounts[0]
+        document.getElementById('address-text').value = account
+
+        await fetch("address?data=" +  account, {
+            method: "POST",
+            credentials: 'include',
+        })
+    }
+
+    async function initPayment() {
+      if (window.ethereum && window.ethereum.isMetaMask) {
+          document.getElementById('address-container').style.display = 'block'            
+          if (!account) {
+            await connectAccount()
+            document.getElementById('payment-container').style.display = 'block'
+          }
+      } else {
+        document.getElementById('install-metamask').style.display = 'block'            
+      }
+    }
 
     async function regenerateToken() {
         await fetch("regenerate", {
@@ -81,6 +286,10 @@
         const token = json.token
         document.getElementById('token-text').value = token
     }
+
+
+    var currentPage = "payment"
+    select(window.location.hash.substring(1))
 
     function select(page) {
       if (page == currentPage || !['auth', 'payment'].includes(page)) {
@@ -117,10 +326,9 @@
           document.getElementById('settings-payment').style.display = 'block'
           document.getElementById('settings-auth').style.display = 'none'
           break
+
       }
       currentPage = page
     }
-    
-</script>
-
+  </script>
 </html>
