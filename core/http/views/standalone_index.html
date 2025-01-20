@@ -14,7 +14,6 @@
           <table class="mx-auto w-auto text-left rounded-lg outline outline-1 outline-gray-700 overflow-hidden">
             <thead class="bg-gray-700">
               <tr>
-                <th></th>
                 <th class="p-2">Prompt</th>
                 <th class="p-2">Completion</th>
                 <th class="p-2">Total</th>
@@ -22,16 +21,9 @@
             </thead>
             <tbody class="bg-gray-800">
               <tr>
-                <th class="p-2">All time</th>
-                <td class="p-2">{{.Usage.AllTimePrompt}}</td>
-                <td class="p-2">{{.Usage.AllTimeCompletion}}</td>
-                <td class="p-2">{{.Usage.AllTimeTotal}}</td>
-              </tr>
-              <tr>
-                <th class="p-2">This period</th>
-                <td class="p-2">{{.Usage.PeriodPrompt}}</td>
-                <td class="p-2">{{.Usage.PeriodCompletion}}</td>
-                <td class="p-2">{{.Usage.PeriodTotal}}</td>
+                <td class="p-2">{{.Usage.Prompt}}</td>
+                <td class="p-2">{{.Usage.Completion}}</td>
+                <td class="p-2">{{.Usage.Total}}</td>
               </tr>
             </tbody>
           </table>

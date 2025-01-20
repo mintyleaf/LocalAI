@@ -37,7 +37,16 @@
                 <div class="px-3 text-gray-400 hover:text-white hover:cursor-pointer">
                     <a data-dropdown-toggle="dropdownAccount">
                         <p class="text-base"><i class="text-sm fa-solid fa-user pr-2"></i>{{.Username}}</p>
-                        <p id="usage-text" class="text-sm">{{if lt (int .Usage.Limit) 0}}Unlimited tokens{{else}}{{.Balance}} tokens{{end}}</p>
+                        <p id="usage-text" class="first-letter:uppercase text-sm {{if .Reason}} text-red-200 {{end}}">
+                        {{if lt (int .Usage.Limit) 0}}
+                            Unlimited tokens
+                        {{else}}
+                            {{if .Reason}}
+                                {{.Reason}}
+                            {{else}}
+                                {{.Balance}} tokens
+                            {{end}}
+                        {{end}}</p>
                     </a>
                 </div>
                 <div id="dropdownAccount" class="z-10 hidden bg-gray-800 shadow-lg rounded-lg">
@@ -111,10 +120,10 @@
         });
         const json = await response.json();
         const limit = json.usage.limit
-        const period_total = json.usage.period_total
+        const total = json.usage.total
         var text = "Unlimited tokens"
         if (limit > -1) {
-            text = limit - period_total + " tokens"
+            text = limit - total + " tokens"
         }
 
         document.getElementById('usage-text').textContent = text

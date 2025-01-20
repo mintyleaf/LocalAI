@@ -46,17 +46,15 @@ type Me struct {
 	Username string `json:"username"`
 	Usage    Usage  `json:"usage"`
 	Token    string `json:"token"`
+	Reason   string `json:"reason"`
 }
 
 type Usage struct {
-	AllTimeTotal      int `json:"all_time_total"`
-	AllTimeCompletion int `json:"all_time_completion"`
-	AllTimePrompt     int `json:"all_time_prompt"`
-	PeriodTotal       int `json:"period_total"`
-	PeriodCompletion  int `json:"period_completion"`
-	PeriodPrompt      int `json:"period_prompt"`
-	Limit             int `json:"limit"`
-	BurnedTokens      int `json:"burned_tokens"`
+	Total        int `json:"total"`
+	Completion   int `json:"completion"`
+	Prompt       int `json:"prompt"`
+	Limit        int `json:"limit"`
+	BurnedTokens int `json:"burned_tokens"`
 }
 
 type Machines struct {
@@ -343,7 +341,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Username": me.Username,
 			"Usage":    me.Usage,
 			"Token":    me.Token,
-			"Balance":  me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":  me.Usage.Limit - me.Usage.Total,
+			"Reason":   me.Reason,
 			"Heads":    heads,
 			"Head":     head,
 			"ToBurn":   machines.TokensTotal - me.Usage.BurnedTokens,
@@ -372,7 +371,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Username":        me.Username,
 			"Usage":           me.Usage,
 			"Token":           me.Token,
-			"Balance":         me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":         me.Usage.Limit - me.Usage.Total,
+			"Reason":          me.Reason,
 			"Heads":           heads,
 			"Head":            head,
 			"ContractABI":     contractABI,
@@ -411,7 +411,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Model":        c.Params("model"),
 			"Username":     me.Username,
 			"Usage":        me.Usage,
-			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":      me.Usage.Limit - me.Usage.Total,
+			"Reason":       me.Reason,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -446,7 +447,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Model":        models[0],
 			"Username":     me.Username,
 			"Usage":        me.Usage,
-			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":      me.Usage.Limit - me.Usage.Total,
+			"Reason":       me.Reason,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -481,7 +483,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Model":        models[0],
 			"Username":     me.Username,
 			"Usage":        me.Usage,
-			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":      me.Usage.Limit - me.Usage.Total,
+			"Reason":       me.Reason,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -511,7 +514,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Model":        c.Params("model"),
 			"Username":     me.Username,
 			"Usage":        me.Usage,
-			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":      me.Usage.Limit - me.Usage.Total,
+			"Reason":       me.Reason,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -546,7 +550,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Model":        models[0].Name,
 			"Username":     me.Username,
 			"Usage":        me.Usage,
-			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":      me.Usage.Limit - me.Usage.Total,
+			"Reason":       me.Reason,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -576,7 +581,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Model":        c.Params("model"),
 			"Username":     me.Username,
 			"Usage":        me.Usage,
-			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":      me.Usage.Limit - me.Usage.Total,
+			"Reason":       me.Reason,
 			"Heads":        heads,
 			"Head":         head,
 		}
@@ -611,7 +617,8 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Model":        models[0].Name,
 			"Username":     me.Username,
 			"Usage":        me.Usage,
-			"Balance":      me.Usage.Limit - me.Usage.PeriodTotal,
+			"Balance":      me.Usage.Limit - me.Usage.Total,
+			"Reason":       me.Reason,
 			"Heads":        heads,
 			"Head":         head,
 		}
