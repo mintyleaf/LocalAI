@@ -48,16 +48,22 @@
                 </div>
                 <div>
                   <label for="amount" class="block text-sm text-white mb-2">Amount</label>
-                  <input type="number" id="amount" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="1000" min="1000">
+                  <input type="number" id="amount" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="8200" min="8200">
                   <div class="flex flex-row rounded-md shadow-sm w-full mt-3" role="group" id="amount-group">
-                    <button id="amount-1k" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
-                      1k
+                    <button id="amount-s" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                      8200
+                      <br>
+                      (5 USDT)
                     </button>
-                    <button id="amount-10k" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
-                      10k
+                    <button id="amount-m" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                      16400
+                      <br>
+                      (10 USDT)
                     </button>
-                    <button id="amount-100k" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
-                      100k
+                    <button id="amount-l" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                      32800
+                      <br>
+                      (20 USDT)
                     </button>
                     <button id="amount-custom" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white" disabled>
                       Custom
@@ -82,20 +88,23 @@
                   <label for="amount" class="block text-sm text-white mb-2">To burn</label>
                   <input type="number" id="balanceToBurn" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.ToBurn}}" disabled readonly>
                 </div>
-                <div>
-                  <label for="amountToBurn" class="block text-sm text-white mb-2">Amount</label>
-                  <input type="number" id="amountToBurn" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.ToBurn}}" min="1" max="{{.ToBurn}}">
+                <p {{if ge .ToBurn 8200}} hidden {{end}} class="text-xs text-red-200 mt-3 w-96">Minimum amount to burn is 8200.</p>
+                <div {{if lt .ToBurn 8200}} hidden {{end}} class="container space-y-4">
+                  <div>
+                    <label for="amountToBurn" class="block text-sm text-white mb-2">Amount</label>
+                    <input type="number" id="amountToBurn" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.ToBurn}}" min="8200" max="{{.ToBurn}}">
+                  </div>
+                  <p hidden class="text-xs text-red-300 mt-3 w-96" id="burn-transaction-error">Transaction error</p>
+                  <p hidden class="text-xs text-white mt-3 w-96" id="burn-transaction-success">Transaction successful! Please wait for your balance to be replenished.</p>
+                  <button id="burn-transaction-create" class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="createBurnTransaction()">Create transaction</button>
+                  <button id="burn-transaction-loading" hidden disabled class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4">
+                    <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                      <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+                    </svg>
+                    Processing...
+                  </button>
                 </div>
-                <p hidden class="text-xs text-red-300 mt-3 w-96" id="burn-transaction-error">Transaction error</p>
-                <p hidden class="text-xs text-white mt-3 w-96" id="burn-transaction-success">Transaction successful! Please wait for your balance to be replenished.</p>
-                <button id="burn-transaction-create" class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="createBurnTransaction()">Create transaction</button>
-                <button id="burn-transaction-loading" hidden disabled class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4">
-                  <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
-                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
-                  </svg>
-                  Processing...
-                </button>
               </div>
             </div>
           </div>
@@ -140,13 +149,13 @@
       const value = amountEl.value
       console.log(value)
       switch (value) {
-        case "1000":
+        case "8200":
           amountButtonChange(0)
           break;
-        case "10000":
+        case "16400":
           amountButtonChange(1)
           break;
-        case "100000":
+        case "32800":
           amountButtonChange(2)
           break;
         default:
@@ -239,13 +248,13 @@
 
       switch (idx) {
         case 0:
-          amountEl.value = "1000"
+          amountEl.value = "8200"
           break;
         case 1:
-          amountEl.value = "10000"
+          amountEl.value = "16400"
           break;
         case 2:
-          amountEl.value = "100000"
+          amountEl.value = "32800"
           break;
       }
     }
