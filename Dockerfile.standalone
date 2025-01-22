@@ -1,0 +1,16 @@
+FROM golang:latest
+LABEL maintainer="mintyleaf <mintyleafdev@gmail.com>"
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+COPY core ./core
+COPY internal ./internal
+COPY pkg ./pkg
+COPY embedded ./embedded
+COPY frontend_standalone ./frontend_standalone
+
+RUN go mod download
+RUN go build -o frontend ./frontend_standalone/main.go
+
+CMD ["./frontend"]
