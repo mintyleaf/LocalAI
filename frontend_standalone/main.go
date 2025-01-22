@@ -407,6 +407,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 
 		summary := fiber.Map{
 			"Title":        "LocalAI - Chat with " + c.Params("model"),
+			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
 			"Model":        c.Params("model"),
 			"Username":     me.Username,
