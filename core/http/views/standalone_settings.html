@@ -52,18 +52,12 @@
                   <div class="flex flex-row rounded-md shadow-sm w-full mt-3" role="group" id="amount-group">
                     <button id="amount-s" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
                       8200
-                      <br>
-                      (5 USDT)
                     </button>
                     <button id="amount-m" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
                       16400
-                      <br>
-                      (10 USDT)
                     </button>
                     <button id="amount-l" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
                       32800
-                      <br>
-                      (20 USDT)
                     </button>
                     <button id="amount-custom" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white" disabled>
                       Custom
@@ -72,7 +66,10 @@
                 </div>
                 <p hidden class="text-xs text-red-300 mt-3 w-96" id="buy-transaction-error">Transaction error</p>
                 <p hidden class="text-xs text-white mt-3 w-96" id="buy-transaction-success">Transaction successful! Please wait for your balance to be replenished.</p>
-                <button id="buy-transaction-create" class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="createBuyTransaction()">Create transaction</button>
+                <p
+                  class="text-xs text-white mt-3 w-96"
+                >Payment is disabled</p>
+                <button id="buy-transaction-create" class="lg:mr-auto bg-blue-900 hover:bg-blue-1000 text-white py-2 px-4 rounded-lg" onclick="createBuyTransaction()" disabled>Create transaction</button>
                 <button id="buy-transaction-loading" hidden disabled class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4">
                   <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
@@ -96,7 +93,10 @@
                   </div>
                   <p hidden class="text-xs text-red-300 mt-3 w-96" id="burn-transaction-error">Transaction error</p>
                   <p hidden class="text-xs text-white mt-3 w-96" id="burn-transaction-success">Transaction successful! Please wait for your balance to be replenished.</p>
-                  <button id="burn-transaction-create" class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="createBurnTransaction()">Create transaction</button>
+                  <p
+                    class="text-xs text-white mt-3 w-96"
+                  >Payment is disabled</p>
+                  <button id="burn-transaction-create" class="lg:mr-auto bg-blue-900 hover:bg-blue-1000 text-white py-2 px-4 rounded-lg" onclick="createBurnTransaction()" disabled>Create transaction</button>
                   <button id="burn-transaction-loading" hidden disabled class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4">
                     <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
