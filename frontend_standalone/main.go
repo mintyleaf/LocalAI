@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"slices"
 
 	"github.com/mudler/LocalAI/pkg/utils"
 
@@ -403,6 +404,15 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
+		}
+
+		if len(models) == 0 {
+			// If no model is available redirect to the index which suggests how to install models
+			return c.Redirect(laihttputils.BaseURL(c))
+		}
+
+		if !slices.Contains(models, c.Params("model")) {
+			return c.Redirect(laihttputils.BaseURL(c) + "/chat")
 		}
 
 		summary := fiber.Map{

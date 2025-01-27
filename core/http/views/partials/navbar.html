@@ -111,6 +111,7 @@
             if (headEls[i].checked) {
                 document.cookie="LocalAI-Head=" + headEls[i].value + "; path=/;";
                 document.getElementById('dropdownHeadMobileText').textContent = headEls[i].value;
+                location.reload();
             }
         }
     }
