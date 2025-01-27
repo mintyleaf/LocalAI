@@ -208,6 +208,9 @@ function readInputImage() {
             try {
               const jsonData = JSON.parse(line.substring(6));
               const token = jsonData.choices[0].delta.content;
+              if (jsonData.choices[0].finish_reason === "stop") {
+                Alpine.store("chat").submitUsage(jsonData.usage);
+              }
 
               if (token) {
                 contentBuffer.push(token);
