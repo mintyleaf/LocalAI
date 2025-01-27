@@ -112,7 +112,7 @@ SOFTWARE.
               <img :src="message.image" alt="Image" class="rounded-lg mt-2 h-36 w-36">
             </template>
             <template x-if="message.usage && message.role === 'assistant'">
-              <span class="text-xs text-gray-400 text-right pr-4" x-text="'Completion tokens: ' + message.usage.completion_tokens + ', generation ' + message.usage.timing_token_generation.toFixed(1) + 'ms'"></span>
+              <span class="text-xs text-gray-400 text-right pr-4" x-text="'Completion tokens: ' + message.usage.completion_tokens + ', processing ' + message.usage.timing_token_generation.toFixed(1) + 'ms'"></span>
             </template>
             <template x-if="message.usage && message.role === 'user'">
               <span class="text-xs text-gray-400 text-right pr-4" x-text="'Prompt tokens: ' + message.usage.prompt_tokens + ', generation ' + message.usage.timing_prompt_processing.toFixed(1) + 'ms'"></span>
