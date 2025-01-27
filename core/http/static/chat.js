@@ -27,11 +27,11 @@ SOFTWARE.
 
 */
 
-function submitKey(event) {
-    event.preventDefault();
-    localStorage.setItem("key", document.getElementById("apiKey").value);
-    document.getElementById("apiKey").blur();
-}
+// function submitKey(event) {
+//     event.preventDefault();
+//     localStorage.setItem("key", document.getElementById("apiKey").value);
+//     document.getElementById("apiKey").blur();
+// }
 
 function submitSystemPrompt(event) {
   event.preventDefault();
@@ -255,19 +255,19 @@ function readInputImage() {
     document.getElementById("input").focus();
   }
 
-  document.getElementById("key").addEventListener("submit", submitKey);
+  // document.getElementById("key").addEventListener("submit", submitKey);
   document.getElementById("system_prompt").addEventListener("submit", submitSystemPrompt);
 
   document.getElementById("prompt").addEventListener("submit", submitPrompt);
   document.getElementById("input").focus();
   document.getElementById("input_image").addEventListener("change", readInputImage);
 
-  storeKey = localStorage.getItem("key");
-  if (storeKey) {
-    document.getElementById("apiKey").value = storeKey;
-  } else {
-    document.getElementById("apiKey").value = null;
-  }
+  // storeKey = localStorage.getItem("key");
+  // if (storeKey) {
+  //   document.getElementById("apiKey").value = storeKey;
+  // } else {
+  //   document.getElementById("apiKey").value = null;
+  // }
 
   storesystemPrompt = localStorage.getItem("system_prompt");
   if (storesystemPrompt) {

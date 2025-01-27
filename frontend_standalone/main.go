@@ -503,7 +503,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
-		models, err := getModels(c)
+		models, err := getModelsConfigs(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}

@@ -1,4 +1,4 @@
-# ConvocAI (NebulaAI idk) frontend
+# Swarmind frontend
 Adopted from LocalAI directly   
 Frontend changes from LocalAI upstream can be synced and merged here    
 
