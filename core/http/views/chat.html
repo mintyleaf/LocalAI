@@ -35,7 +35,7 @@ SOFTWARE.
         overflow: hidden; 
     }
   </style>
-  <body class="bg-gray-900 text-gray-200" x-data="{ key: $store.chat.key }">
+  <body class="bg-gray-900 text-gray-200">
     <div class="flex flex-col min-h-screen">
 
     {{template "views/partials/navbar" .}}
@@ -162,7 +162,7 @@ SOFTWARE.
               this.history.push({
                 role: role,
                 content: content,
-                html: DOMPurify.sanitize(marked.parse(content)),
+                html: DOMPurify.sanitize(marked.parse(content, { breaks: true })),
                 image: image,
               });
             }
