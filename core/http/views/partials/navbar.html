@@ -14,11 +14,13 @@
             </div>
             <!-- Navigation links -->
             <div class="hidden lg:flex lg:items-center lg:justify-end lg:flex-1 lg:w-0">
+                <!-- <a href="browse/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fas fa-brain pr-2"></i> Models</a> -->
                 <a href="chat/" class="text-gray-400 transition hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-comments pr-2"></i> Chat </a>
                 <a href="text2image/" class="text-gray-400 transition hover:text-white px-3 py-2 rounded"><i class="fas fa-image pr-2"></i> Generate images </a>
                 <a href="tts/" class="text-gray-400 transition hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-music pr-2"></i> TTS </a>
                 <a href="talk/" class="text-gray-400 transition hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-phone pr-2"></i> Talk </a>
                 <div class="w-px mx-2 self-stretch bg-gradient-to-tr from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"></div>
+                <a href="p2p/" class="text-gray-400 hover:text-white px-3 py-2 rounded"><i class="fa-solid fa-circle-nodes mr-1"></i> Swarm </a>
                 <a data-dropdown-toggle="dropdownHeadSelect" class="text-gray-400 transition hover:text-white px-3 py-2 rounded capitalize hover:cursor-pointer"><i class="fa-solid fa-server pr-2"></i> <label id="dropdownHeadText" class="hover:cursor-pointer">{{ .Head }}</label> <i class="text-sm fa-solid fa-caret-down pl-1"></i></a>
                 <div id="dropdownHeadSelect" class="z-10 hidden bg-gray-800 border border-gray-700 shadow-lg rounded-lg">
                     <div class="p-3 flex flex-col gap-3">

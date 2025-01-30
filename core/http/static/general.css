@@ -1,3 +1,7 @@
+html {
+    background-color: #1f2937 !important;
+}
+
 body {
     font-family: 'Inter', sans-serif;
 }
@@ -106,15 +110,16 @@ div#messages h6 {
 }
 
 div#messages ul, ol {
-    padding-left: 1.25rem !important; /* Indents the list from the left margin */
-    margin-top: 0.5rem !important; /* Space above the list */
+    margin-top: 0.125rem !important; /* Space above the list */
     margin-bottom: 0.5rem !important; /* Space above the list */
 }
 
 div#messages ul {
+    padding-left: 1.25rem !important; /* Indents the list from the left margin */
     list-style-type: disc; /* Adds bullet points */
 }
 
 div#messages ol {
-    list-style-type: decimal;
+    padding-left: 0.25rem !important; /* Indents the list from the left margin */
+    list-style: decimal inside none;
 }

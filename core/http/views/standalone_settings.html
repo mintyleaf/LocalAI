@@ -10,7 +10,7 @@
           <div class="grid grid-flow-col auto-cols-min justify-center gap-6">
             <a id="sidebar-payment" href="javascript:select('payment')" class="flex truncate text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-money-bill pr-2"></i>
               Payment</a>
-            <a id="sidebar-auth" href="javascript:select('auth')" class="flex truncate text-gray-400 hover:text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-key pr-2"></i>
+            <a id="sidebar-auth" href="javascript:select('auth')" class="flex transition truncate text-gray-400 hover:text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-key pr-2"></i>
               Authorization</a>
           </div>
           <hr
@@ -21,7 +21,7 @@
           <div class="flex flex-col gap-3 pr-2">
             <a id="sidebar-payment" href="javascript:select('payment')" class="flex truncate text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-money-bill pr-2"></i>
               Payment</a>
-            <a id="sidebar-auth" href="javascript:select('auth')" class="flex truncate text-gray-400 hover:text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-key pr-2"></i>
+            <a id="sidebar-auth" href="javascript:select('auth')" class="flex transition truncate text-gray-400 hover:text-white px-3 py-2 rounded"><i class="text-base fa-solid fa-key pr-2"></i>
               Authorization</a>
           </div>
           <div class="w-px mx-2 self-stretch bg-gradient-to-tr from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"></div>
@@ -50,16 +50,16 @@
                   <label for="amount" class="block text-sm text-white mb-2">Amount</label>
                   <input type="number" id="amount" class="text-base border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="8200" min="8200">
                   <div class="flex flex-row rounded-md shadow-sm w-full mt-3" role="group" id="amount-group">
-                    <button id="amount-s" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                    <button id="amount-s" type="button" class="basis-full transition px-4 py-2 text-sm font-medium border rounded-s-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
                       8200
                     </button>
-                    <button id="amount-m" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                    <button id="amount-m" type="button" class="basis-full transition px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
                       16400
                     </button>
-                    <button id="amount-l" type="button" class="basis-full px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
+                    <button id="amount-l" type="button" class="basis-full transition px-4 py-2 text-sm font-medium border focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white">
                       32800
                     </button>
-                    <button id="amount-custom" type="button" class="basis-full px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white" disabled>
+                    <button id="amount-custom" type="button" class="basis-full transition px-4 py-2 text-sm font-medium border rounded-e-lg focus:z-10 focus:ring-2 bg-gray-800 border-gray-700 text-white hover:text-white hover:bg-gray-700 focus:ring-blue-500 focus:text-white" disabled>
                       Custom
                     </button>
                   </div>
@@ -96,8 +96,8 @@
                   <p
                     class="text-xs text-white mt-3 w-96"
                   >Payment is disabled</p>
-                  <button id="burn-transaction-create" class="lg:mr-auto bg-blue-900 hover:bg-blue-1000 text-white py-2 px-4 rounded-lg" onclick="createBurnTransaction()" disabled>Create transaction</button>
-                  <button id="burn-transaction-loading" hidden disabled class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4">
+                  <button id="burn-transaction-create" class="lg:mr-auto transition bg-blue-900 hover:bg-blue-1000 text-white py-2 px-4 rounded-lg" onclick="createBurnTransaction()" disabled>Create transaction</button>
+                  <button id="burn-transaction-loading" hidden disabled class="lg:mr-auto transition bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg mt-4">
                     <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
                       <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
@@ -113,10 +113,29 @@
           <div class="flex flex-col gap-4 py-4">
             <h2 class="text-2xl w-96">API token</h2>
             <div>
-              <label for="username" class="block text-sm text-white mb-2">Token</label>
-              <input type="text" id="token-text" class="text-xs border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.Token}}" placeholder="Generate a token using button below" disabled readonly>
+              <label for="token-text" class="block text-sm text-white mb-2">Token</label>
+              <div class="relative">
+                <input type="text" id="token-text" class="text-xs border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value="{{.Token}}" placeholder="Generate a token using button below" disabled readonly>
+                <button data-copy-to-clipboard-target="token-text" data-tooltip-target="token-text-copy-button" class="absolute bg-gray-700 transition end-1 top-1/2 -translate-y-1/2 text-gray-400 hover:bg-gray-800 rounded-lg p-2 inline-flex items-center justify-center">
+                  <span id="default-icon">
+                    <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
+                      <path d="M16 1h-3.278A1.992 1.992 0 0 0 11 0H7a1.993 1.993 0 0 0-1.722 1H2a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2Zm-3 14H5a1 1 0 0 1 0-2h8a1 1 0 0 1 0 2Zm0-4H5a1 1 0 0 1 0-2h8a1 1 0 1 1 0 2Zm0-5H5a1 1 0 0 1 0-2h2V2h4v2h2a1 1 0 1 1 0 2Z"/>
+                    </svg>
+                  </span>
+                  <span id="success-icon" class="hidden">
+                    <svg class="w-3.5 h-3.5 text-blue-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 12">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5.917 5.724 10.5 15 1.5"/>
+                    </svg>
+                  </span>
+                </button>
+                <div id="token-text-copy-button" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 rounded-lg shadow-xs opacity-0 tooltip bg-gray-700">
+                  <span id="default-tooltip-message">Copy to clipboard</span>
+                  <span id="success-tooltip-message" class="hidden">Copied!</span>
+                  <div class="tooltip-arrow" data-popper-arrow></div>
+                </div>
+              </div>
             </div>
-            <button class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="regenerateToken()">Regenerate token</button>
+            <button class="lg:mr-auto transition bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg" onclick="regenerateToken()">Regenerate token</button>
             <h2 class="text-2xl w-96 mt-6">Password</h2>
             <form class="flex flex-col space-y-4" action="/change_password" method="post">
               <div>
@@ -131,7 +150,7 @@
                 <label for="password_confirm" class="block text-sm text-white mb-2">Confirm password</label>
                 <input type="password" name="password_confirm" id="password_confirm" placeholder="••••••••" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" required="">
               </div>
-              <button type="submit" class="lg:mr-auto bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Change password</button>
+              <button type="submit" class="lg:mr-auto transition bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Change password</button>
             </form>
           </div>
         </div>
@@ -169,6 +188,42 @@
         amountButtonChange(i)
       })
     }
+
+    window.addEventListener('load', function () {
+      const clipboard = FlowbiteInstances.getInstance('CopyClipboard', 'token-text');
+      const tooltip = FlowbiteInstances.getInstance('Tooltip', 'token-text-copy-button');
+
+      const $defaultIcon = document.getElementById('default-icon');
+      const $successIcon = document.getElementById('success-icon');
+
+      const $defaultTooltipMessage = document.getElementById('default-tooltip-message');
+      const $successTooltipMessage = document.getElementById('success-tooltip-message');
+
+      clipboard.updateOnCopyCallback((clipboard) => {
+          showSuccess();
+
+          // reset to default state
+          setTimeout(() => {
+              resetToDefault();
+          }, 2000);
+      })
+
+      const showSuccess = () => {
+          $defaultIcon.classList.add('hidden');
+          $successIcon.classList.remove('hidden');
+          $defaultTooltipMessage.classList.add('hidden');
+          $successTooltipMessage.classList.remove('hidden');    
+          tooltip.show();
+      }
+
+      const resetToDefault = () => {
+          $defaultIcon.classList.remove('hidden');
+          $successIcon.classList.add('hidden');
+          $defaultTooltipMessage.classList.remove('hidden');
+          $successTooltipMessage.classList.add('hidden');
+          tooltip.hide();
+      }
+    })
 
     async function createBuyTransaction() {
       document.getElementById('buy-transaction-success').style.display = 'none'

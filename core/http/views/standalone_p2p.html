@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  {{template "views/partials/head" .}}
+  <body class="bg-gray-900 text-gray-200">
+    <div class="flex flex-col min-h-screen" x-data="{}">
+      {{template "views/partials/navbar" .}}
+      <div class="container mx-auto px-4 flex-grow">
+        <div class="workers mt-12 text-center">
+          <div class="animation-container">
+            <canvas id="networkCanvas"></canvas>
+            <div class="text-overlay">
+              <header class="text-center py-12">
+                <h1 class="text-5xl font-bold text-gray-100">
+                  <i class="fa-solid fa-circle-nodes mr-2"></i>
+                  Distributed inference with P2P
+                </h1>
+                <p class="mt-4 text-lg">
+                  Distribute computation by sharing and loadbalancing instances or  sharding model weights.
+                  <a href="https://localai.io/features/distribute/" target="_blank">
+                    <i class="fas fa-circle-info pr-2"></i>
+                  </a>
+                </p>
+              </header>
+            </div>
+          </div>
+          <h5 class="mb-4 text-justify">LocalAI uses P2P technologies to enable distribution of work between peers. It is possible to share an instance with Federation and/or split the weights of a model across peers (only available with llama.cpp models)</h5>
+          <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-12 text-left">
+            <p class="text-xl font-semibold text-gray-200">
+              <i class="text-gray-200 fa-solid fa-circle-nodes mr-1"></i>
+              Swarm Nodes:
+            </p>
+            <div id="nodesContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-12 mt-3">
+            </div>
+            <hr class="border-gray-700 mb-12">
+            <h3 class="text-2xl font-semibold text-gray-100 mb-6"><i class="fa-solid fa-book mr-2"></i>
+              Join to Swarmind</h3>
+            <div class="mb-6">
+              <p class="text-lg font-bold mb-4 mt-1">
+                Setup environment:
+              </p>
+              <code class="block bg-gray-700 text-yellow-300 p-4 rounded-lg break-words">
+                # Optional<br>
+                LOCALAI_P2P_DHT_ANNOUNCE_MADDRS=/ip4/[External IP Address]/tcp/[External listen port]<br>
+                LOCALAI_P2P_LISTEN_MADDRS=/ip4/0.0.0.0/tcp/[Internal listen port]<br>
+                LOCALAI_API_KEY=[Optional API key for direct access if needed]<br>
+                # Mandatory<br>
+                LOCALAI_P2P_BOOTSTRAP_PEERS_MADDRS=/ip4/[DHT Node IP address]/tcp/[DHT Node port]/p2p/[DHT Node P2P ID]<br>
+                LOCALAI_MODELS=[github://Owner/Repo/models/tiger-gemma-9b-v1-i1.yaml@master,...]<br>
+                LOCALAI_MACHINE_TAG=[Your account associated machine name]<br>
+                LOCALAI_MODELS_PATH=/models<br>
+                TOKEN=[Provided P2P Network token]
+              </code>
+              <p class="text-lg font-bold mb-4 mt-4">
+                Run the LocalAI instance:
+              </p>
+              <code class="block bg-gray-700 text-yellow-300 p-4 rounded-lg break-words">
+                # Run federated node<br>
+                local-ai run --federated<br>
+                # Run llama.cpp worker<br>
+                local-ai worker p2p-llama-cpp-rpc<br>
+                # Run federated node ready to use llama.cpp workers<br>
+                local-ai run --p2p --federatted
+              </code>
+              <p class="mt-2">For more details please refer to original
+                <a href="https://localai.io/features/distribute" target="_blank" class="text-yellow-300 hover:text-yellow-400">documentation</a>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{template "views/partials/footer" .}}
+    </div>
+    <script src="static/p2panimation.js"></script>
+    <style>
+      .token {
+        word-break: break-all;
+    }
+    .workers .grid div {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    </style>
+  </body>
+  <script>
+    var machinesMap = null
+    var machinesUpdateTimestamp = Date.now()
+  
+    async function fetchMachinesMap() {
+        const response = await fetch("p2p_machines_map", {
+          method: "GET",
+          credentials: 'include',
+        });
+        return await response.json();
+    }
+
+    function renderMachines(machines) {
+      const container = document.getElementById("nodesContainer")
+      container.innerHTML = '';
+    
+      for (let i in machines) {
+        const machine = machines[i]
+        console.log(machine)
+        container.innerHTML += `
+          <div name="machine" class="py-3 transition-all duration-300 ease-out bg-green-700 rounded-lg items-center">
+            <p class="text-gray-200">
+              <i class="fa-solid fa-server mr-2"></i>
+              ` + machine.name + ': ' + machine.type + `
+            </p>
+          </div>`
+      }
+
+      setTimeout(function() {
+        var machineEls = document.getElementsByName('machine');
+        for (i = 0; i < machineEls.length; i++) {
+            machineEls[i].classList.remove('bg-green-700')
+            machineEls[i].classList.add('bg-gray-700')
+        }
+      }, 50)
+    }
+
+    function machineName(id) {
+      for (let key in machinesMap) {
+        const value = machinesMap[key]
+        if (value) {
+          if (id.startsWith(value)) {
+            return key
+          }
+        }
+      }
+      return id
+    }
+
+    async function processP2PData() {
+      if (machinesMap == null || Date.now() - machinesUpdateTimestamp > 600000) { // 10 minutes
+        machinesMap = await fetchMachinesMap()
+        machinesUpdateTimestamp = Date.now()
+      }
+
+      var machines = []
+      const currentTime = Date.now()
+      const response = await fetch("/lai/{{.Head}}/api/p2p", {
+          method: "GET",
+          credentials: 'include',
+      });
+      const json = await response.json()
+
+      for (let i in json["nodes"]) {
+        const node = json["nodes"][i]
+        const date = new Date(node["LastSeen"]);
+        if (currentTime - date > 120000) {
+          continue
+        }
+
+        machines.push(
+          {
+            name: machineName(node["ID"]),
+            type: "worker"
+          }
+        )
+      }
+      for (let i in json["federated_nodes"]) {
+        const node = json["federated_nodes"][i]
+        const date = new Date(node["LastSeen"]);
+        if (currentTime - date > 120000) {
+          continue
+        }
+
+        machines.push(
+          {
+            name: machineName(node["ID"]),
+            type: "node"
+          }
+        )
+      }
+      machines.sort((a, b) => a.name.localeCompare(b.name)).filter(function(item, pos, ary) {
+        return !pos || item != ary[pos - 1];
+      });
+
+
+      renderMachines(machines)
+    }
+
+    setInterval(processP2PData, 10000)
+    processP2PData()
+  </script>
+</html>

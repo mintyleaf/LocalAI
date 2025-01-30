@@ -48,6 +48,7 @@ type Me struct {
 	Usage    Usage  `json:"usage"`
 	Token    string `json:"token"`
 	Reason   string `json:"reason"`
+	Level    int    `json:"level"`
 }
 
 type Usage struct {
@@ -388,6 +389,60 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		} else {
 			// Render index
 			return c.Render("views/standalone_settings", summary)
+		}
+	})
+
+	router.Get("/browse", func(c *fiber.Ctx) error {
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		me, _ := getMe(c)
+
+		summary := fiber.Map{
+			"BaseURL":  laihttputils.BaseURL(c),
+			"Username": me.Username,
+			"Usage":    me.Usage,
+			"Token":    me.Token,
+			"Balance":  me.Usage.Limit - me.Usage.Total,
+			"Reason":   me.Reason,
+			"Heads":    heads,
+			"Head":     head,
+		}
+
+		if string(c.Context().Request.Header.ContentType()) == "application/json" || len(c.Accepts("html")) == 0 {
+			// The client expects a JSON response
+			return c.Status(fiber.StatusOK).JSON(summary)
+		} else {
+			// Render index
+			return c.Render("views/standalone_browse", summary)
+		}
+	})
+
+	router.Get("/p2p", func(c *fiber.Ctx) error {
+		heads, head, err := getHeads(c)
+		if err != nil {
+			log.Error().Err(err).Msg("getHeads")
+		}
+		me, _ := getMe(c)
+
+		summary := fiber.Map{
+			"BaseURL":  laihttputils.BaseURL(c),
+			"Username": me.Username,
+			"Usage":    me.Usage,
+			"Token":    me.Token,
+			"Balance":  me.Usage.Limit - me.Usage.Total,
+			"Reason":   me.Reason,
+			"Heads":    heads,
+			"Head":     head,
+		}
+
+		if string(c.Context().Request.Header.ContentType()) == "application/json" || len(c.Accepts("html")) == 0 {
+			// The client expects a JSON response
+			return c.Status(fiber.StatusOK).JSON(summary)
+		} else {
+			// Render index
+			return c.Render("views/standalone_p2p", summary)
 		}
 	})
 
