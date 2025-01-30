@@ -9,10 +9,6 @@ let isRecording = false;
 let conversationHistory = [];
 let resetTimer;
 
-function getApiKey() {
-    return document.getElementById('apiKey').value;
-}
-
 function getModel() {
     return document.getElementById('modelSelect').value;
 }
@@ -98,23 +94,6 @@ function stopRecording() {
         document.getElementById("statustext").textContent = "Press the record button to start recording.";
     };
 }
-
-function submitKey(event) {
-    event.preventDefault();
-    localStorage.setItem("key", document.getElementById("apiKey").value);
-    document.getElementById("apiKey").blur();
-}
-
-document.getElementById("key").addEventListener("submit", submitKey);
-
-
-storeKey = localStorage.getItem("key");
-if (storeKey) {
-  document.getElementById("apiKey").value = storeKey;
-} else {
-  document.getElementById("apiKey").value = null;
-}
-
 
 async function sendAudioToWhisper(audioBlob) {
     const formData = new FormData();

@@ -1,10 +1,3 @@
-function submitKey(event) {
-    event.preventDefault();
-    localStorage.setItem("key", document.getElementById("apiKey").value);
-    document.getElementById("apiKey").blur();
-  }
-  
-
 function genAudio(event) {
   event.preventDefault();
   const input = document.getElementById("input").value;
@@ -19,7 +12,7 @@ async function tts(key, input) {
   document.getElementById("input").disabled = true;
 
   const model = document.getElementById("tts-model").value;
-  const response = await fetch("tts", {
+  const response = await fetch("/lai/" + document.getElementById("headValue").innerHTML + "/tts", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${key}`,
@@ -54,13 +47,6 @@ async function tts(key, input) {
   document.getElementById("input").focus();
 }
 
-document.getElementById("key").addEventListener("submit", submitKey);
 document.getElementById("input").focus();
 document.getElementById("tts").addEventListener("submit", genAudio);
 document.getElementById("loader").style.display = "none";
-
-const storeKey = localStorage.getItem("key");
-if (storeKey) {
-  document.getElementById("apiKey").value = storeKey;
-}
-

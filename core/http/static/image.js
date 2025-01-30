@@ -26,13 +26,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-function submitKey(event) {
-    event.preventDefault();
-    localStorage.setItem("key", document.getElementById("apiKey").value);
-    document.getElementById("apiKey").blur();
-  }
-  
-
 function genImage(event) {
   event.preventDefault();
   const input = document.getElementById("input").value;
@@ -86,13 +79,7 @@ async function promptDallE(key, input) {
   document.getElementById("input").focus();
 }
 
-document.getElementById("key").addEventListener("submit", submitKey);
 document.getElementById("input").focus();
 document.getElementById("genimage").addEventListener("submit", genImage);
 document.getElementById("loader").style.display = "none";
-
-const storeKey = localStorage.getItem("key");
-if (storeKey) {
-  document.getElementById("apiKey").value = storeKey;
-}
 

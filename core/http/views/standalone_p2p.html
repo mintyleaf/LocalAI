@@ -11,7 +11,7 @@
             <canvas id="networkCanvas"></canvas>
             <div class="text-overlay">
               <header class="text-center py-12">
-                <h1 class="text-5xl font-bold text-gray-100">
+                <h1 class="text-2xl md:text-3xl lg:text-5xl font-bold text-gray-100">
                   <i class="fa-solid fa-circle-nodes mr-2"></i>
                   Distributed inference with P2P
                 </h1>
@@ -24,7 +24,7 @@
               </header>
             </div>
           </div>
-          <h5 class="mb-4 text-justify">LocalAI uses P2P technologies to enable distribution of work between peers. It is possible to share an instance with Federation and/or split the weights of a model across peers (only available with llama.cpp models)</h5>
+          <h5 class="m-4 text-justify">LocalAI uses P2P technologies to enable distribution of work between peers. It is possible to share an instance with Federation and/or split the weights of a model across peers (only available with llama.cpp models)</h5>
           <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-12 text-left">
             <p class="text-xl font-semibold text-gray-200">
               <i class="text-gray-200 fa-solid fa-circle-nodes mr-1"></i>
@@ -36,10 +36,10 @@
             <h3 class="text-2xl font-semibold text-gray-100 mb-6"><i class="fa-solid fa-book mr-2"></i>
               Join to Swarmind</h3>
             <div class="mb-6">
-              <p class="text-lg font-bold mb-4 mt-1">
+              <p class="text-lg font-bold mb-4 mt-1 ml-1">
                 Setup environment:
               </p>
-              <code class="block bg-gray-700 text-yellow-300 p-4 rounded-lg break-words">
+              <code class="block bg-gray-700 text-yellow-300 p-4 rounded-lg break-words ml-2">
                 # Optional<br>
                 LOCALAI_P2P_DHT_ANNOUNCE_MADDRS=/ip4/[External IP Address]/tcp/[External listen port]<br>
                 LOCALAI_P2P_LISTEN_MADDRS=/ip4/0.0.0.0/tcp/[Internal listen port]<br>
@@ -51,10 +51,10 @@
                 LOCALAI_MODELS_PATH=/models<br>
                 TOKEN=[Provided P2P Network token]
               </code>
-              <p class="text-lg font-bold mb-4 mt-4">
+              <p class="text-lg font-bold mb-4 mt-4 ml-1">
                 Run the LocalAI instance:
               </p>
-              <code class="block bg-gray-700 text-yellow-300 p-4 rounded-lg break-words">
+              <code class="block bg-gray-700 text-yellow-300 p-4 rounded-lg break-words ml-2">
                 # Run federated node<br>
                 local-ai run --federated<br>
                 # Run llama.cpp worker<br>
@@ -62,7 +62,7 @@
                 # Run federated node ready to use llama.cpp workers<br>
                 local-ai run --p2p --federatted
               </code>
-              <p class="mt-2">For more details please refer to original
+              <p class="mt-4 ml-2">For more details please refer to original
                 <a href="https://localai.io/features/distribute" target="_blank" class="text-yellow-300 hover:text-yellow-400">documentation</a>.</p>
             </div>
           </div>

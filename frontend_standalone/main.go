@@ -568,7 +568,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
-		models, err := getModelsConfigs(c)
+		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -599,7 +599,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
-		models, err := getModelsConfigs(c)
+		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -610,10 +610,10 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		}
 
 		summary := fiber.Map{
-			"Title":        "LocalAI - Generate images with " + models[0].Name,
+			"Title":        "LocalAI - Generate images with " + models[0],
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
-			"Model":        models[0].Name,
+			"Model":        models[0],
 			"Username":     me.Username,
 			"Usage":        me.Usage,
 			"Balance":      me.Usage.Limit - me.Usage.Total,
@@ -635,7 +635,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
-		models, err := getModelsConfigs(c)
+		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -666,7 +666,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getMe")
 		}
-		models, err := getModelsConfigs(c)
+		models, err := getModels(c)
 		if err != nil {
 			log.Error().Err(err).Msg("getModels")
 		}
@@ -677,10 +677,10 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		}
 
 		summary := fiber.Map{
-			"Title":        "LocalAI - Generate audio with " + models[0].Name,
+			"Title":        "LocalAI - Generate audio with " + models[0],
 			"BaseURL":      laihttputils.BaseURL(c),
 			"ModelsConfig": models,
-			"Model":        models[0].Name,
+			"Model":        models[0],
 			"Username":     me.Username,
 			"Usage":        me.Usage,
 			"Balance":      me.Usage.Limit - me.Usage.Total,
