@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/mudler/LocalAI/pkg/utils"
 
 	"github.com/mudler/LocalAI/core/config"
+	"github.com/mudler/LocalAI/core/gallery"
 	laihttp "github.com/mudler/LocalAI/core/http"
 	"github.com/mudler/LocalAI/core/http/endpoints/openai"
 	"github.com/mudler/LocalAI/core/http/middleware"
@@ -138,6 +140,32 @@ func getModels(c *fiber.Ctx) ([]string, error) {
 		response = append(response, v.ID)
 	}
 	return response, nil
+}
+
+func getModelsMeta(c *fiber.Ctx, head string) ([]*gallery.GalleryModel, error) {
+	modelsResponse := []*gallery.GalleryModel{}
+
+	agent := fiber.AcquireAgent()
+	agent.Request().Header.SetMethod("GET")
+	agent.Request().Header.SetContentType("application/json")
+	agent.Request().SetRequestURI(laihttputils.BaseURL(c) + "/lai/" + head + "/models/available")
+	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("LocalAI-Head", c.Cookies("LocalAI-Head"))
+	err := agent.Parse()
+	if err != nil {
+		return modelsResponse, err
+	}
+	_, body, errs := agent.Bytes()
+	if len(errs) > 0 {
+		return modelsResponse, errs[0]
+	}
+
+	err = json.Unmarshal(body, &modelsResponse)
+	if err != nil {
+		return modelsResponse, err
+	}
+	return modelsResponse, nil
+
 }
 
 func round(num float64) int {
@@ -397,6 +425,31 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
+		models, _ := getModels(c)
+		modelsMeta, _ := getModelsMeta(c, head)
+		filteredModels := []*gallery.GalleryModel{}
+		for _, meta := range modelsMeta {
+			indexMatch := -1
+			for idx, name := range models {
+				// TODO do exact match, that is done only for demo purposes because of stablediffusion naming
+				if strings.HasPrefix(meta.Name, name) {
+					indexMatch = idx
+					break
+				}
+			}
+			if indexMatch < 0 {
+				continue
+			}
+			models = append(models[:indexMatch], models[indexMatch+1:]...)
+			filteredModels = append(filteredModels, meta)
+		}
+		for _, name := range models {
+			emptyModel := gallery.GalleryModel{
+				Name: name,
+			}
+			filteredModels = append(filteredModels, &emptyModel)
+		}
+
 		me, _ := getMe(c)
 
 		summary := fiber.Map{
@@ -408,6 +461,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 			"Reason":   me.Reason,
 			"Heads":    heads,
 			"Head":     head,
+			"Models":   filteredModels,
 		}
 
 		if string(c.Context().Request.Header.ContentType()) == "application/json" || len(c.Accepts("html")) == 0 {

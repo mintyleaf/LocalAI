@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  {{template "views/partials/head" .}}
+  <body class="bg-gray-900 text-gray-200">
+    <div class="flex flex-col min-h-screen" x-data="{}">
+      {{template "views/partials/navbar" .}}
+      <div class="mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-12 mt-3">
+        {{ range .Models }}
+        <div class="block rounded-lg shadow-secondary-1 bg-gray-800 bg-surface-dark text-white text-surface">
+          <div>
+            <div class="flex justify-center items-center">
+              <a href="#!">
+                <img class="rounded-t-lg max-h-48 max-w-96 object-cover mt-3" loading="lazy" src="{{ if .Icon }} {{ .Icon }} {{ else }} https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg {{ end }}">
+              </a>
+            </div>
+            <div class="p-6 text-surface text-white">
+              <h5 class="text-xl font-bold leading-tight">{{.Name}}</h5>
+              {{ if .License }}
+              <span class="inline-block py-1 text-sm font-semibold text-gray-300 mr-2"><i class="fas fa-book pr-2"></i>License: {{.License}}</span>
+              {{ end }}
+              <div class="mt-2 mb-4 text-sm">{{.Description}}</div>
+              {{ if .URLs }}
+              <ul>
+                {{ range .URLs }}
+                <li>
+                  <a class="text-sm leading-relaxed text-gray-400 hover:text-white transition" href="{{.}}" target="_blank">
+                    <i class="fas fa-link pr-2">
+                    </i>{{.}}
+                  </a>
+                </li>
+                {{ end }}
+              </ul>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+        {{ end }}
+      </div>
+      {{template "views/partials/footer" .}}
+    </div>
+  </body>
+  <script>
+  </script>
+</html>
