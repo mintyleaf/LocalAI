@@ -62,10 +62,17 @@ async function promptDallE(key, input) {
     div.innerHTML = '<p style="color:red;">' + json.error.message + '</p>';
     return;
   }
-  const url = json.data[0].url;
 
   var div = document.getElementById('result');  // Get the div by its ID
   var img = document.createElement('img');         // Create a new img element
+
+  const head = document.getElementById('dropdownHeadText').textContent;
+  const parts = json.data[0].url.split('/');
+  const generatedImagesIndex = parts.indexOf('generated-images');
+
+  parts.splice(generatedImagesIndex, 0, "lai/"+head);
+  const url = parts.join('/');
+
   img.src = url;  // Set the source of the image
   img.alt = 'Generated image';            // Set the alt text of the image
 
