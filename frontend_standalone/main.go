@@ -9,6 +9,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/mudler/LocalAI/pkg/utils"
 
@@ -254,7 +255,7 @@ func getMe(c *fiber.Ctx, apiURL string) (Me, error) {
 	return meResponse, nil
 }
 
-func getHeads(c *fiber.Ctx, apiURL string) ([]string, string, error) {
+func getHeads(c *fiber.Ctx, apiURL, cookieDomain string) ([]string, string, error) {
 	agent := fiber.AcquireAgent()
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().Header.SetContentType("application/json")
@@ -283,24 +284,31 @@ func getHeads(c *fiber.Ctx, apiURL string) ([]string, string, error) {
 	if head == "" {
 		head = heads[0]
 		c.Cookie(&fiber.Cookie{
-			Name:  "LocalAI-Head",
-			Value: head,
-			Path:  "/",
-			// TODO https handling
-			Secure: false,
+			Name:   "LocalAI-Head",
+			Value:  head,
+			Path:   "/",
+			Domain: cookieDomain,
+			Secure: true,
 		})
 	}
 
 	return heads, head, nil
 }
 
-func logout(c *fiber.Ctx, apiURL string) error {
+func logout(c *fiber.Ctx, apiURL, cookieDomain string) error {
 	agent := fiber.AcquireAgent()
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().SetRequestURI(apiURL + "/logout")
 	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
 
-	c.ClearCookie("auth_token")
+	c.Cookie(&fiber.Cookie{
+		Name:    "auth_token",
+		Value:   "",
+		Path:    "/",
+		Domain:  cookieDomain,
+		Secure:  true,
+		Expires: time.Now().AddDate(-1, 0, 0),
+	})
 
 	err := agent.Parse()
 	if err != nil {
@@ -324,6 +332,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 
 	listenURL := os.Getenv("LISTEN_URL")
 	apiURL := os.Getenv("API_URL")
+	cookieDomain := os.Getenv("COOKIE_DOMAIN")
 
 	fiberCfg := fiber.Config{
 		Views:     laihttp.RenderEngine(),
@@ -384,7 +393,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	utils.LoadConfig(appConfig.ConfigsDir, openai.AssistantsFileConfigFile, &openai.AssistantFiles)
 
 	router.Get("/", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -415,12 +424,12 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/logout", func(c *fiber.Ctx) error {
-		_ = logout(c, apiURL)
+		_ = logout(c, apiURL, cookieDomain)
 		return c.Redirect(listenURL)
 	})
 
 	router.Get("/settings", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -453,7 +462,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/browse", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -507,7 +516,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/p2p", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -536,7 +545,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 
 	// Show the Chat page
 	router.Get("/chat/:model", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -577,7 +586,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/talk/", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -614,7 +623,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/chat/", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -651,7 +660,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/text2image/:model", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -683,7 +692,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/text2image/", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -720,7 +729,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/tts/:model", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
@@ -752,7 +761,7 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 	})
 
 	router.Get("/tts/", func(c *fiber.Ctx) error {
-		heads, head, err := getHeads(c, apiURL)
+		heads, head, err := getHeads(c, apiURL, cookieDomain)
 		if err != nil {
 			log.Error().Err(err).Msg("getHeads")
 		}
