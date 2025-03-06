@@ -99,13 +99,10 @@ async function sendAudioToWhisper(audioBlob) {
     const formData = new FormData();
     formData.append('file', audioBlob);
     formData.append('model', getWhisperModel());
-    API_KEY = localStorage.getItem("key");
 
-    const response = await fetch('v1/audio/transcriptions', {
+    const response = await fetch(document.getElementById("APIURLValue").innerHTML + '/v1/audio/transcriptions', {
         method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${API_KEY}`
-        },
+        credentials: 'include',
         body: formData
     });
 
@@ -117,12 +114,11 @@ async function sendAudioToWhisper(audioBlob) {
 
 async function sendTextToChatGPT(text) {
     conversationHistory.push({ role: "user", content: text });
-    API_KEY = localStorage.getItem("key");
 
-    const response = await fetch('v1/chat/completions', {
+    const response = await fetch(document.getElementById("APIURLValue").innerHTML + '/v1/chat/completions', {
         method: 'POST',
+        credentials: 'include',
         headers: {
-            'Authorization': `Bearer ${API_KEY}`,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -143,13 +139,10 @@ async function sendTextToChatGPT(text) {
 }
 
 async function getTextToSpeechAudio(text) {
-    API_KEY = localStorage.getItem("key");
-
-    const response = await fetch('v1/audio/speech', {
-        
+    const response = await fetch(document.getElementById("APIURLValue").innerHTML + '/v1/audio/speech', {
+        credentials: 'include',
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${API_KEY}`,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 

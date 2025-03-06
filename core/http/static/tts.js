@@ -12,10 +12,10 @@ async function tts(key, input) {
   document.getElementById("input").disabled = true;
 
   const model = document.getElementById("tts-model").value;
-  const response = await fetch("/lai/" + document.getElementById("headValue").innerHTML + "/tts", {
+  const response = await fetch(document.getElementById("APIURLValue").innerHTML + "/v1/audio/speech", {
     method: "POST",
+    credentials: 'include',
     headers: {
-      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

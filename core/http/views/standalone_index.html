@@ -82,7 +82,7 @@
         <div class="header text-center py-6">
           <h1 class="text-5xl font-bold text-gray-100">Swarmind</h1>
         </div>
-        <form id="login" class="space-y-4" action="/login" method="post">
+        <form id="login" class="space-y-4" action="{{.APIURL}}/login" method="post">
           <div>
             <label for="username" class="block text-sm text-white mb-2">Username</label>
             <input type="username" name="username" id="username" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="username" required="">
@@ -97,7 +97,7 @@
             <a href="#" onclick="showRegister()" class="text-blue-400 hover:text-blue-600 hover:underline">Register</a>
           </p>
         </form>
-        <form hidden id="register" class="space-y-4" action="/register" method="post">
+        <form hidden id="register" class="space-y-4" action="{{.APIURL}}/register" method="post">
           <div>
             <label for="username" class="block text-sm text-white mb-2">Username</label>
             <input type="username" name="username" id="username" class="border rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="username" required="">
@@ -123,6 +123,44 @@
     </div>
   </body>
   <script>
+    function handleFormSubmit(formId, redirectUrl) {
+      const form = document.getElementById(formId);
+      if (!form) {
+          console.error(`Form with ID '${formId}' not found.`);
+          return;
+      }
+
+      form.addEventListener('submit', (event) => {
+          event.preventDefault();
+
+          const formData = new FormData(form);
+          const data = {};
+          formData.forEach((value, key) => {
+              data[key] = value;
+          });
+
+          fetch(form.action, {
+              method: form.method,
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify(data),
+          })
+          .then((res) => {
+              if (!res.ok) {
+                  throw new Error(`HTTP error! Status: ${res.status}`);
+              }
+              window.location.href = redirectUrl;
+          })
+          .catch((error) => {
+              console.error("Error:", error);
+          });
+      });
+    }
+    handleFormSubmit('login', '/')
+    handleFormSubmit('register', '/')
+  
     function showRegister() {
         document.getElementById('register').style.display = 'block'
         document.getElementById('login').style.display = 'none'

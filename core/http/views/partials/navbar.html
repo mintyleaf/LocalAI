@@ -120,7 +120,7 @@
         }
     }
     async function updateUsage() {
-        const response = await fetch("me", {
+        const response = await fetch("{{.APIURL}}/me", {
           method: "GET",
           credentials: 'include',
         });

@@ -86,7 +86,7 @@
     var machinesUpdateTimestamp = Date.now()
   
     async function fetchMachinesMap() {
-        const response = await fetch("p2p_machines_map", {
+        const response = await fetch("{{.APIURL}}/p2p_machines_map", {
           method: "GET",
           credentials: 'include',
         });
@@ -138,7 +138,7 @@
 
       var machines = []
       const currentTime = Date.now()
-      const response = await fetch("/lai/{{.Head}}/api/p2p", {
+      const response = await fetch("{{.APIURL}}/lai/{{.Head}}/api/p2p", {
           method: "GET",
           credentials: 'include',
       });

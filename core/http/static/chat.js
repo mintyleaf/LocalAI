@@ -143,10 +143,10 @@ function readInputImage() {
     // }
 
     // Source: https://stackoverflow.com/a/75751803/11386095
-    const response = await fetch("v1/chat/completions", {
+    const response = await fetch(document.getElementById("APIURLValue").innerHTML + "/v1/chat/completions", {
       method: "POST",
+      credentials: 'include',
       headers: {
-        Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
