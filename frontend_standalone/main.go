@@ -297,7 +297,7 @@ func getHeads(c *fiber.Ctx, apiURL, cookieDomain string) ([]string, string, erro
 
 func logout(c *fiber.Ctx, apiURL, cookieDomain string) error {
 	agent := fiber.AcquireAgent()
-	agent.Request().Header.SetMethod("GET")
+	agent.Request().Header.SetMethod("POST")
 	agent.Request().SetRequestURI(apiURL + "/logout")
 	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
 
