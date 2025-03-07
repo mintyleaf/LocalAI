@@ -4,7 +4,7 @@ Frontend changes from LocalAI upstream can be synced and merged here
 
 # Launching
 ```
-CONTRACT_ADDRESS="..." CONTRACT_ABI='...' LISTEN_URL='...' API_URL='...' COOKIE_DOMAIN='...' go run frontend_standalone/main.go
+CONTRACT_ADDRESS="..." CONTRACT_ABI='...' LISTEN_URL='...' API_URL='...' COOKIE_DOMAIN='...' COOKIE_INSECURE='something is present here - cookie not secure' go run frontend_standalone/main.go
 ```
 It runs at `:8081` port   
 

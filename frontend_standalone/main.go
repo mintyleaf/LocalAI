@@ -96,7 +96,7 @@ func makeModelsRequest(c *fiber.Ctx, apiURL string) (schema.ModelsDataResponse, 
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().Header.SetContentType("application/json")
 	agent.Request().SetRequestURI(apiURL + "/v1/models")
-	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("jwt", c.Cookies("jwt"))
 	agent.Request().Header.SetCookie("LocalAI-Head", c.Cookies("LocalAI-Head"))
 	err := agent.Parse()
 	if err != nil {
@@ -149,7 +149,7 @@ func getModelsMeta(c *fiber.Ctx, apiURL, head string) ([]*gallery.GalleryModel, 
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().Header.SetContentType("application/json")
 	agent.Request().SetRequestURI(apiURL + "/lai/" + head + "/models/available")
-	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("jwt", c.Cookies("jwt"))
 	agent.Request().Header.SetCookie("LocalAI-Head", c.Cookies("LocalAI-Head"))
 	err := agent.Parse()
 	if err != nil {
@@ -181,7 +181,7 @@ func getMachines(c *fiber.Ctx, apiURL string) (Machines, error) {
 	agent := fiber.AcquireAgent()
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().SetRequestURI(apiURL + "/machines")
-	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("jwt", c.Cookies("jwt"))
 	err := agent.Parse()
 	var machinesResponse Machines
 	if err != nil {
@@ -213,7 +213,7 @@ func getAddress(c *fiber.Ctx, apiURL string) (string, error) {
 	agent := fiber.AcquireAgent()
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().SetRequestURI(apiURL + "/address")
-	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("jwt", c.Cookies("jwt"))
 	err := agent.Parse()
 	if err != nil {
 		return "", err
@@ -225,8 +225,17 @@ func getAddress(c *fiber.Ctx, apiURL string) (string, error) {
 	if statusCode != http.StatusOK {
 		return "", fmt.Errorf("Non 200 OK status code: %d", statusCode)
 	}
+	type AddressResponse struct {
+		Address string `json:"address"`
+	}
 
-	return string(body), err
+	address := AddressResponse{}
+	err = json.Unmarshal(body, &address)
+	if err != nil {
+		return "", err
+	}
+
+	return address.Address, err
 }
 
 func getMe(c *fiber.Ctx, apiURL string) (Me, error) {
@@ -234,7 +243,7 @@ func getMe(c *fiber.Ctx, apiURL string) (Me, error) {
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().Header.SetContentType("application/json")
 	agent.Request().SetRequestURI(apiURL + "/me")
-	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("jwt", c.Cookies("jwt"))
 	err := agent.Parse()
 	meResponse := Me{}
 	if err != nil {
@@ -260,7 +269,7 @@ func getHeads(c *fiber.Ctx, apiURL, cookieDomain string) ([]string, string, erro
 	agent.Request().Header.SetMethod("GET")
 	agent.Request().Header.SetContentType("application/json")
 	agent.Request().SetRequestURI(apiURL + "/heads")
-	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("jwt", c.Cookies("jwt"))
 	err := agent.Parse()
 	if err != nil {
 		return nil, "", err
@@ -272,9 +281,11 @@ func getHeads(c *fiber.Ctx, apiURL, cookieDomain string) ([]string, string, erro
 	if statusCode != http.StatusOK {
 		return nil, "", fmt.Errorf("Non 200 OK status code: %d", statusCode)
 	}
+	type HeadsResponse struct {
+		Heads []string `json:"heads"`
+	}
 
-	heads := []string{}
-
+	heads := HeadsResponse{}
 	err = json.Unmarshal(body, &heads)
 	if err != nil {
 		return nil, "", err
@@ -282,31 +293,31 @@ func getHeads(c *fiber.Ctx, apiURL, cookieDomain string) ([]string, string, erro
 
 	head := c.Cookies("LocalAI-Head", "")
 	if head == "" {
-		head = heads[0]
+		head = heads.Heads[0]
 		c.Cookie(&fiber.Cookie{
 			Name:   "LocalAI-Head",
 			Value:  head,
 			Path:   "/",
 			Domain: cookieDomain,
-			Secure: true,
+			Secure: os.Getenv("COOKIE_INSECURE") == "",
 		})
 	}
 
-	return heads, head, nil
+	return heads.Heads, head, nil
 }
 
 func logout(c *fiber.Ctx, apiURL, cookieDomain string) error {
 	agent := fiber.AcquireAgent()
 	agent.Request().Header.SetMethod("POST")
 	agent.Request().SetRequestURI(apiURL + "/logout")
-	agent.Request().Header.SetCookie("auth_token", c.Cookies("auth_token"))
+	agent.Request().Header.SetCookie("jwt", c.Cookies("jwt"))
 
 	c.Cookie(&fiber.Cookie{
-		Name:    "auth_token",
+		Name:    "jwt",
 		Value:   "",
 		Path:    "/",
 		Domain:  cookieDomain,
-		Secure:  true,
+		Secure:  os.Getenv("COOKIE_INSECURE") == "",
 		Expires: time.Now().AddDate(-1, 0, 0),
 	})
 

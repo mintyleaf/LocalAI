@@ -356,9 +356,15 @@
         account = accounts[0]
         document.getElementById('address-text').value = account
 
-        await fetch("{{.APIURL}}/address?data=" +  account, {
+        await fetch("{{.APIURL}}/address", {
             method: "POST",
             credentials: 'include',
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              address: account,
+            })
         })
     }
 
@@ -376,7 +382,7 @@
 
     async function regenerateToken() {
         await fetch("{{.APIURL}}/regenerate", {
-            method: "GET",
+            method: "POST",
             credentials: 'include',
         });
         const response = await fetch("{{.APIURL}}/me", {
