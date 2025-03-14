@@ -434,6 +434,17 @@ func API(appConfig *config.ApplicationConfig) (*fiber.App, error) {
 		}
 	})
 
+	router.Post("/head/:name", func(c *fiber.Ctx) error {
+		c.Cookie(&fiber.Cookie{
+			Name:   "LocalAI-Head",
+			Value:  c.Params("name"),
+			Path:   "/",
+			Domain: cookieDomain,
+			Secure: os.Getenv("COOKIE_INSECURE") == "",
+		})
+		return nil
+	})
+
 	router.Get("/logout", func(c *fiber.Ctx) error {
 		_ = logout(c, apiURL, cookieDomain)
 		return c.Redirect(listenURL)

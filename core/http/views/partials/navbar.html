@@ -99,25 +99,33 @@
 </nav>
 
 <script>
-    function submitHeadRadio() {
+    async function submitHeadRadio() {
         var headEls = document.getElementsByName('head-radio');
         for (i = 0; i < headEls.length; i++) {
             if (headEls[i].checked) {
-                document.cookie="LocalAI-Head=" + headEls[i].value + "; path=/;";
+                await fetch("{{.BaseURL}}/head/" + headEls[i].value, {
+                    method: "POST",
+                    credentials: 'include',
+                })
                 document.getElementById('dropdownHeadText').textContent = headEls[i].value;
-                location.reload();
+                break;
             }
         }
+        location.reload()
     }
-    function submitMobileHeadRadio() {
+    async function submitMobileHeadRadio() {
         var headEls = document.getElementsByName('mobile-head-radio');
         for (i = 0; i < headEls.length; i++) {
             if (headEls[i].checked) {
-                document.cookie="LocalAI-Head=" + headEls[i].value + "; path=/;";
+                await fetch("{{.BaseURL}}/head/" + headEls[i].value, {
+                    method: "POST",
+                    credentials: 'include',
+                })
                 document.getElementById('dropdownHeadMobileText').textContent = headEls[i].value;
-                location.reload();
+                break;
             }
         }
+        location.reload()
     }
     async function updateUsage() {
         const response = await fetch("{{.APIURL}}/me", {
